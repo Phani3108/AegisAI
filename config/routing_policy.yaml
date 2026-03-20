@@ -1,0 +1,13 @@
+# Routing policy for hybrid vs local-only (Phase 1).
+# Edit this file or point AEGISAI_ROUTING_POLICY_PATH elsewhere.
+
+version: 1
+
+# Sensitivity labels for which the API may accept mode=hybrid.
+# confidential / regulated are not listed => hybrid rejected for those labels.
+hybrid_allowed_labels:
+  - public
+  - internal
+
+# If true, all jobs must behave as local-only (hybrid always rejected).
+force_local_only: false
