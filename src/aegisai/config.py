@@ -49,6 +49,14 @@ class Settings(BaseSettings):
         le=1024,
         description="Max pipeline jobs running at once; extra POST /v1/jobs returns 429.",
     )
+    dlp_enabled: bool = Field(
+        default=False,
+        description="Enable regex DLP scan on hybrid job requests (text inputs).",
+    )
+    dlp_block_hybrid: bool = Field(
+        default=True,
+        description="If DLP finds patterns and mode is hybrid, reject job creation (400).",
+    )
 
 
 def get_settings() -> Settings:

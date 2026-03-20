@@ -39,6 +39,6 @@
 
 ## Backlog / ideas (not committed)
 
-- [ ] Scene detection for smarter video keyframes
-- [ ] DLP integration prototype for hybrid mode
-- [ ] K8s Helm chart (T2)
+- [x] Scene detection for smarter video keyframes (`video_sampling.scene_detection` + ffmpeg)
+- [x] DLP integration prototype for hybrid mode ([`src/aegisai/dlp/scan.py`](src/aegisai/dlp/scan.py))
+- [x] K8s Helm chart (T2) — [`deploy/helm/aegisai`](deploy/helm/aegisai)

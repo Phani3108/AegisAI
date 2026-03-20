@@ -21,8 +21,9 @@ Optional `text` inputs supply the user question; otherwise a default summary pro
 ### `video_ref`
 
 1. **ffmpeg** samples keyframe PNGs (see `video_sampling` on `JobRequest`: `max_frames`, optional `fps`).
-2. **Vision model** describes each sampled frame.
-3. **Text LLM** answers from the concatenated frame descriptions.
+2. Optional **`video_sampling.scene_detection`** — sample at **scene cuts** (`select=gt(scene,…)` in ffmpeg) instead of fixed FPS; set **`scene_threshold`** (default `0.35`) to tune sensitivity.
+3. **Vision model** describes each sampled frame.
+4. **Text LLM** answers from the concatenated frame descriptions.
 
 Requires `ffmpeg` on `PATH`.
 
@@ -87,6 +88,20 @@ Every job stores an initial **`policy`** event with the policy version and route
 - **`AEGISAI_API_KEY`** — when set, all `/v1/*` routes require `Authorization: Bearer <key>` or `X-API-Key: <key>`. `/health`, `/metrics`, and OpenAPI UIs stay open (tighten at your proxy if needed).
 - **`AEGISAI_MAX_CONCURRENT_JOBS`** — cap parallel pipeline executions; additional `POST /v1/jobs` returns **429** until a slot frees.
 - **`Idempotency-Key` header** on `POST /v1/jobs` — replays return the same `job_id` without enqueueing a duplicate (in-memory store; use for client retries).
+
+### DLP prototype (hybrid)
+
+- **`AEGISAI_DLP_ENABLED=true`** — regex scan over **text** inputs on **`mode=hybrid`** jobs (SSN- and card-like patterns; not a compliance product).
+- **`AEGISAI_DLP_BLOCK_HYBRID=true`** (default) — reject hybrid job creation with **400** when patterns match; use `local_only` or sanitize prompts.
+
+### Audit export
+
+- **`GET /v1/jobs/{job_id}/audit`** — JSON array of job events (same schema as embedded `events` on `GET /v1/jobs/{id}`).
+- **`GET /v1/jobs/{job_id}/audit?format=ndjson`** — **NDJSON** for log/SIEM pipelines.
+
+### Kubernetes (Helm sketch)
+
+- [`deploy/helm/aegisai`](deploy/helm/aegisai) — minimal Deployment + Service; optional PVC for Chroma. See chart [`README`](deploy/helm/aegisai/README.md).
 
 ## Observability (lightweight)
 

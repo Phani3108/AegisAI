@@ -1,0 +1,23 @@
+replicaCount: 1
+
+image:
+  repository: aegisai
+  tag: "0.1.0"
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 8000
+
+resources: {}
+
+env:
+  AEGISAI_OLLAMA_BASE_URL: "http://ollama:11434"
+  AEGISAI_CHROMA_PERSIST_DIR: "/data/chroma"
+
+extraEnv: []
+
+persistence:
+  enabled: false
+  storageClass: ""
+  size: 10Gi

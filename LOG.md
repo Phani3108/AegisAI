@@ -60,6 +60,12 @@ Append-only chronological record. Each entry: **date**, **user prompt (summary)*
 - **Actions:** Added `tests/test_e2e_deep.py` (Chroma+RAG job flow + mocked image job), `scripts/verify_e2e.sh`, dev deps `pytest-cov`, `build`; ran **ruff**, **compileall**, **15 pytest** tests, **`python -m build`** (sdist+wheel OK). Added **MIT** `LICENSE`, README repo link + verify script section. Initialized git in project dir, `main` branch, pushed to `origin` (https://github.com/Phani3108/AegisAI).
 - **Files:** `tests/test_e2e_deep.py`, `scripts/verify_e2e.sh`, `pyproject.toml`, `LICENSE`, `README.md`, `tasks.md`, `LOG.md`
 
+### Entry 12 — Backlog: scene keyframes, DLP hybrid, audit NDJSON, Helm
+
+- **Prompt summary:** Continue with the rest of backlog changes.
+- **Actions:** **`video_sampling.scene_detection`** + `scene_threshold` using ffmpeg `select=gt(scene,…)`; **`aegisai.dlp.scan`** + `AEGISAI_DLP_*` + 400 on hybrid when patterns in text; **`GET /v1/jobs/{id}/audit`** JSON + `?format=ndjson`; **Helm** under `deploy/helm/aegisai` (Deployment, Service, optional PVC). Tests: `test_dlp_*`, `test_*audit*`, `test_video_scene_ffmpeg`. README / `.env.example` / `tasks.md`.
+- **Files:** `src/aegisai/schemas/video.py`, `src/aegisai/pipelines/video.py`, `src/aegisai/dlp/*`, `src/aegisai/api/routes/v1_jobs.py`, `deploy/helm/aegisai/**`, `tests/test_dlp_scan.py`, `tests/test_dlp_api.py`, `tests/test_audit_route.py`, `tests/test_video_scene_ffmpeg.py`, `README.md`, `.env.example`, `tasks.md`, `LOG.md`
+
 ### Entry 11 — Phase 2 platform (auth cap, idempotency, benchmark module)
 
 - **Prompt summary:** Continue next phases — Phase 2 hardening per planning.md.

@@ -259,4 +259,4 @@ Phased approach to avoid overbuilding:
 
 ---
 
-*Last updated: Phase 2 T1-lite guardrails (optional API key, job cap, idempotency) + in-package benchmark helper.*
+*Last updated: Phase 2 T1-lite + backlog (scene-based video sampling, DLP hybrid prototype, audit NDJSON, Helm sketch).*

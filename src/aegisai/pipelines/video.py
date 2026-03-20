@@ -7,6 +7,13 @@ from pathlib import Path
 from aegisai.schemas.video import SamplingPolicy
 
 
+def _run_ffmpeg_keyframes(cmd: list[str]) -> None:
+    proc = subprocess.run(cmd, capture_output=True, text=True)
+    if proc.returncode != 0:
+        err = (proc.stderr or proc.stdout or "").strip()
+        raise RuntimeError(f"ffmpeg failed ({proc.returncode}): {err or 'no stderr'}")
+
+
 def extract_keyframes(video_path: Path, policy: SamplingPolicy, out_dir: Path) -> list[Path]:
     """
     Extract PNG frames into out_dir using ffmpeg.
@@ -20,6 +27,27 @@ def extract_keyframes(video_path: Path, policy: SamplingPolicy, out_dir: Path) -
         raise RuntimeError("ffmpeg not found on PATH; install ffmpeg to use video extraction.")
 
     pattern = str(out_dir / "frame_%04d.png")
+    if policy.scene_detection:
+        thresh = policy.scene_threshold
+        vf = f"select='gt(scene,{thresh})',showinfo"
+        cmd = [
+            "ffmpeg",
+            "-hide_banner",
+            "-loglevel",
+            "error",
+            "-i",
+            str(video_path),
+            "-vf",
+            vf,
+            "-vsync",
+            "vfr",
+            "-frames:v",
+            str(policy.max_frames),
+            pattern,
+        ]
+        _run_ffmpeg_keyframes(cmd)
+        return sorted(out_dir.glob("frame_*.png"))
+
     vf = f"fps={policy.fps}" if policy.fps is not None else "fps=1"
     cmd = [
         "ffmpeg",
@@ -34,8 +62,5 @@ def extract_keyframes(video_path: Path, policy: SamplingPolicy, out_dir: Path) -
         str(policy.max_frames),
         pattern,
     ]
-    proc = subprocess.run(cmd, capture_output=True, text=True)
-    if proc.returncode != 0:
-        err = (proc.stderr or proc.stdout or "").strip()
-        raise RuntimeError(f"ffmpeg failed ({proc.returncode}): {err or 'no stderr'}")
+    _run_ffmpeg_keyframes(cmd)
     return sorted(out_dir.glob("frame_*.png"))
