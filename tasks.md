@@ -128,6 +128,12 @@
 - [x] Added optional secure ops endpoint protection (`/ready`, `/metrics`) via config
 - [x] Added role-aware hybrid routing policy support (`hybrid_allowed_roles`) and tests
 
+## Phase 17 — Operator UX + frontend reliability
+
+- [x] Added auth header mode selector (Bearer / X-API-Key) to demo UI
+- [x] Replaced EventSource with header-capable fetch SSE stream parser for authenticated streaming
+- [x] Added structured payload builder templates (image/document/video) to reduce JSON mistakes
+
 ---
 
 ## Backlog / ideas (not committed)

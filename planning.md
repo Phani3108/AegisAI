@@ -262,4 +262,4 @@ Phased approach to avoid overbuilding:
 
 ---
 
-*Last updated: Phase 16 (JWT/API-key auth modes + role-aware policy controls — see [tasks.md](tasks.md)).*
+*Last updated: Phase 17 (auth-capable frontend streaming + structured payload UX — see [tasks.md](tasks.md)).*

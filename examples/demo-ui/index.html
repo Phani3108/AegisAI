@@ -259,6 +259,13 @@
             <label for="apiKey">API key (optional)</label>
             <input id="apiKey" type="password" placeholder="Bearer / X-API-Key" autocomplete="off" />
           </div>
+          <div class="col">
+            <label for="authMode">Auth header mode</label>
+            <select id="authMode">
+              <option value="bearer" selected>Authorization: Bearer</option>
+              <option value="x-api-key">X-API-Key</option>
+            </select>
+          </div>
         </div>
 
         <div class="row">
@@ -281,7 +288,27 @@
           <button id="btnCheck" type="button">Check /ready</button>
           <button id="btnPolicy" type="button">Load /v1/policy</button>
           <button id="btnSample" type="button">Insert sample JSON</button>
+          <button id="btnBuildPayload" type="button">Build from form</button>
           <button id="btnBeautify" type="button">Beautify JSON</button>
+        </div>
+
+        <div class="row">
+          <div class="col">
+            <label for="tplKind">Structured template</label>
+            <select id="tplKind">
+              <option value="image">Image summary</option>
+              <option value="document">Document QA</option>
+              <option value="video">Video summary</option>
+            </select>
+          </div>
+          <div class="col">
+            <label for="tplUri">Input URI (file:// on server)</label>
+            <input id="tplUri" type="text" placeholder="file:///absolute/path/on/server/input.ext" />
+          </div>
+          <div class="col">
+            <label for="tplQuestion">Prompt / question</label>
+            <input id="tplQuestion" type="text" value="Summarize in 2 concise bullet points." />
+          </div>
         </div>
 
         <label for="body">Request body (POST /v1/jobs)</label>
@@ -328,7 +355,7 @@
     const $ = (id) => document.getElementById(id);
     const base = () => $("base").value.trim().replace(/\/$/, "");
     let pollTimer = null;
-    let eventSource = null;
+    let eventsAbort = null;
 
     const nowStamp = () => new Date().toLocaleTimeString();
 
@@ -340,7 +367,13 @@
     const headers = () => {
       const h = { "Content-Type": "application/json" };
       const key = $("apiKey").value.trim();
-      if (key) h.Authorization = "Bearer " + key;
+      if (key) {
+        if ($("authMode").value === "x-api-key") {
+          h["X-API-Key"] = key;
+        } else {
+          h.Authorization = "Bearer " + key;
+        }
+      }
       return h;
     };
 
@@ -428,42 +461,58 @@
     };
 
     const stopEventStream = () => {
-      if (eventSource) {
-        eventSource.close();
-        eventSource = null;
+      if (eventsAbort) {
+        eventsAbort.abort();
+        eventsAbort = null;
         appendEvent("stream closed");
       }
     };
 
-    const startEventStream = () => {
+    const streamWithFetch = async (url) => {
+      const resp = await fetch(url, { headers: headers(), signal: eventsAbort.signal });
+      if (!resp.ok || !resp.body) {
+        appendEvent("stream open failed: HTTP " + resp.status);
+        return;
+      }
+      appendEvent("stream open: " + url);
+      const reader = resp.body.getReader();
+      const decoder = new TextDecoder();
+      let buf = "";
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        buf += decoder.decode(value, { stream: true });
+        const chunks = buf.split("\n\n");
+        buf = chunks.pop() || "";
+        for (const chunk of chunks) {
+          const line = chunk.split("\n").find((x) => x.startsWith("data:"));
+          if (!line) continue;
+          const data = line.slice(5).trim();
+          if (data === "[DONE]") {
+            appendEvent("[DONE]");
+            stopEventStream();
+            return;
+          }
+          try {
+            appendEvent(JSON.parse(data));
+          } catch {
+            appendEvent(data);
+          }
+        }
+      }
+    };
+
+    const startEventStream = async () => {
       stopEventStream();
       const id = $("jobId").value.trim();
       if (!id) {
         show("Set job ID first.", "GET /v1/jobs/{id}/events");
         return;
       }
-      const key = $("apiKey").value.trim();
-      if (key) {
-        appendEvent("API key is set: browser EventSource cannot send Authorization headers.");
-        appendEvent("Use no API key for demo stream or stream via your own backend proxy.");
-      }
       const url = base() + "/v1/jobs/" + encodeURIComponent(id) + "/events";
-      eventSource = new EventSource(url);
-      appendEvent("stream open: " + url);
-      eventSource.onmessage = (ev) => {
-        if (ev.data === "[DONE]") {
-          appendEvent("[DONE]");
-          stopEventStream();
-          return;
-        }
-        try {
-          appendEvent(JSON.parse(ev.data));
-        } catch {
-          appendEvent(ev.data);
-        }
-      };
-      eventSource.onerror = () => {
-        appendEvent("stream error");
+      eventsAbort = new AbortController();
+      streamWithFetch(url).catch((e) => {
+        appendEvent("stream error: " + (e && e.message ? e.message : String(e)));
       };
     };
 
@@ -483,6 +532,24 @@
     $("btnSample").onclick = () => {
       $("body").value = JSON.stringify(sampleBody(), null, 2);
       show("Sample payload inserted.", "Insert sample");
+    };
+
+    $("btnBuildPayload").onclick = () => {
+      const kind = $("tplKind").value;
+      const uri = $("tplUri").value.trim();
+      const q = $("tplQuestion").value.trim() || "Summarize.";
+      if (!uri) {
+        show("Set Input URI before building payload.", "Build from form");
+        return;
+      }
+      const typed = kind === "document" ? "document_ref" : (kind === "video" ? "video_ref" : "image_ref");
+      const payload = {
+        inputs: [{ type: typed, uri }, { type: "text", text: q }],
+        sensitivity_label: "internal",
+        mode: "local_only"
+      };
+      $("body").value = JSON.stringify(payload, null, 2);
+      show("Payload built from structured form.", "Build from form");
     };
 
     $("btnBeautify").onclick = () => {

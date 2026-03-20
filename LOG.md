@@ -99,6 +99,11 @@ Append-only chronological record. Each entry: **date**, **user prompt (summary)*
 - **Prompt summary:** Add OIDC/JWT-capable auth path, role checks, and endpoint protection model.
 - **Actions:** Extended middleware to support `api_key` / `jwt` / `both` modes with HS256 Bearer token verification and role extraction in [`api_key`](src/aegisai/middleware/api_key.py); added optional protected ops endpoints (`/ready`, `/metrics`) via config; extended routing policy with `hybrid_allowed_roles` and applied role-aware hybrid checks in job creation flow. Added security tests in [`tests/test_phase16_security.py`](tests/test_phase16_security.py). Full QA gate passed (54 tests).
 
+### Entry 28 — Phase 17: operator UX + frontend reliability
+
+- **Prompt summary:** Upgrade frontend for auth-capable streaming and cleaner structured input flow.
+- **Actions:** Updated demo UI with auth header mode selector (Bearer or X-API-Key), replaced EventSource-based SSE with a header-capable fetch stream parser, and added structured payload templates for image/document/video in [`examples/demo-ui/index.html`](examples/demo-ui/index.html). Updated demo docs in [`examples/demo-ui/README.md`](examples/demo-ui/README.md). Full QA gate passed (54 tests).
+
 ### Entry 19 — Phase 9: OpenAPI polish, integrator kit, demo UI, optional Redis
 
 - **Prompt summary:** Implement attached plan (planning §9, OpenAPI, .http + SDK doc, demo UI, Redis idempotency/rate limit).
