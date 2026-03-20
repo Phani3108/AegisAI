@@ -7,8 +7,10 @@ from fastapi import FastAPI
 
 from aegisai.api.routes import health, ops_metrics, v1_collections, v1_jobs, v1_metrics, v1_stream
 from aegisai.config import get_settings
+from aegisai.middleware.api_key import APIKeyMiddleware
 from aegisai.middleware.request_id import RequestIdMiddleware
 from aegisai.policy.loader import load_routing_policy
+from aegisai.services.job_concurrency import configure_limiter
 from aegisai.telemetry.otel import maybe_instrument
 
 logging.basicConfig(
@@ -20,6 +22,7 @@ logging.basicConfig(
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     settings = get_settings()
+    configure_limiter(settings.max_concurrent_jobs)
     policy = load_routing_policy(settings)
     settings.chroma_persist_dir.mkdir(parents=True, exist_ok=True)
     chroma_client = chromadb.PersistentClient(path=str(settings.chroma_persist_dir.resolve()))
@@ -41,6 +44,7 @@ app = FastAPI(
 )
 
 app.add_middleware(RequestIdMiddleware)
+app.add_middleware(APIKeyMiddleware)
 
 app.include_router(health.router, tags=["health"])
 app.include_router(ops_metrics.router, tags=["metrics"])

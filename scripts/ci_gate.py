@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 """
-CI benchmark gate: runs the test suite (required) and exits non-zero on failure.
-Extend later with coverage thresholds or benchmark regression checks.
+CI gate: runs pytest (required). Benchmark harness is exercised via
+tests/test_benchmark_image_v0.py (no live Ollama).
+
+Extend later with coverage thresholds or benchmark regression thresholds.
 """
 from __future__ import annotations
 

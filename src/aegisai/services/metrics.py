@@ -58,6 +58,8 @@ async def reset_for_tests() -> None:
 
 
 async def snapshot() -> dict[str, Any]:
+    from aegisai.services.job_concurrency import get_limiter
+
     async with _lock:
         avg = None
         if _state["latency_ms_count"] > 0:
@@ -68,6 +70,7 @@ async def snapshot() -> dict[str, Any]:
             "by_pipeline": {k: dict(v) for k, v in _state["by_pipeline"].items()},
             "latency_ms_avg": avg,
             "latency_ms_observations": _state["latency_ms_count"],
+            "jobs_in_flight": get_limiter().in_flight,
         }
 
 
@@ -117,4 +120,9 @@ def render_prometheus(snap: dict[str, Any]) -> str:
         )
         lines.append("# TYPE aegisai_job_latency_ms_avg gauge")
         lines.append(f"aegisai_job_latency_ms_avg {float(avg):.6f}")
+    inflight = snap.get("jobs_in_flight")
+    if inflight is not None:
+        lines.append("# HELP aegisai_jobs_in_flight Jobs accepted but pipeline not finished yet.")
+        lines.append("# TYPE aegisai_jobs_in_flight gauge")
+        lines.append(f"aegisai_jobs_in_flight {int(inflight)}")
     return "\n".join(lines) + "\n"

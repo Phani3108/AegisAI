@@ -39,6 +39,16 @@ class Settings(BaseSettings):
         default=False,
         description="Enable OpenTelemetry FastAPI instrumentation (install aegisai[otel]).",
     )
+    api_key: str | None = Field(
+        default=None,
+        description="If set, /v1/* requires Authorization: Bearer <key> or X-API-Key.",
+    )
+    max_concurrent_jobs: int = Field(
+        default=8,
+        ge=1,
+        le=1024,
+        description="Max pipeline jobs running at once; extra POST /v1/jobs returns 429.",
+    )
 
 
 def get_settings() -> Settings:

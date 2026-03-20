@@ -259,4 +259,4 @@ Phased approach to avoid overbuilding:
 
 ---
 
-*Last updated: FastAPI scaffold + ADR 0001.*
+*Last updated: Phase 2 T1-lite guardrails (optional API key, job cap, idempotency) + in-package benchmark helper.*

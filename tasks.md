@@ -28,6 +28,13 @@
 - [x] Real-time: **SSE** `POST /v1/stream/chat` (Ollama streaming proxy)
 - [x] Fine-tuning track: [`experiments/train_lora.py`](experiments/train_lora.py) stub + CI gate ([`docs/fine_tune/PLAYBOOK.md`](docs/fine_tune/PLAYBOOK.md))
 
+## Phase 2 — Platform hardening (T1-lite)
+
+- [x] Optional **`AEGISAI_API_KEY`** middleware for `/v1/*` (Bearer + `X-API-Key`)
+- [x] Concurrent job cap (`AEGISAI_MAX_CONCURRENT_JOBS`) + 429 + `jobs_in_flight` metric
+- [x] **`Idempotency-Key`** on `POST /v1/jobs` (in-memory dedupe)
+- [x] Benchmark harness in-package [`aegisai.benchmarks.image_v0`](src/aegisai/benchmarks/image_v0.py) + CI test
+
 ---
 
 ## Backlog / ideas (not committed)

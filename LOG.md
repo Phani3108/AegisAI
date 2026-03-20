@@ -60,6 +60,12 @@ Append-only chronological record. Each entry: **date**, **user prompt (summary)*
 - **Actions:** Added `tests/test_e2e_deep.py` (Chroma+RAG job flow + mocked image job), `scripts/verify_e2e.sh`, dev deps `pytest-cov`, `build`; ran **ruff**, **compileall**, **15 pytest** tests, **`python -m build`** (sdist+wheel OK). Added **MIT** `LICENSE`, README repo link + verify script section. Initialized git in project dir, `main` branch, pushed to `origin` (https://github.com/Phani3108/AegisAI).
 - **Files:** `tests/test_e2e_deep.py`, `scripts/verify_e2e.sh`, `pyproject.toml`, `LICENSE`, `README.md`, `tasks.md`, `LOG.md`
 
+### Entry 11 — Phase 2 platform (auth cap, idempotency, benchmark module)
+
+- **Prompt summary:** Continue next phases — Phase 2 hardening per planning.md.
+- **Actions:** **`APIKeyMiddleware`** (`AEGISAI_API_KEY`) for `/v1/*`; **`JobConcurrencyLimiter`** + 429 on overload; **`_execute_job_guarded`** releases slot in `finally`; **idempotency** map in `job_store` + `Idempotency-Key`; metrics **`jobs_in_flight`**; **`aegisai.benchmarks.image_v0.run_image_benchmark`** with thin `benchmarks/run_v0.py` CLI; tests `test_phase2_platform.py`, `test_benchmark_image_v0.py`; **conftest** resets jobs + limiter; README / `.env.example` / `tasks.md`.
+- **Files:** `src/aegisai/config.py`, `src/aegisai/main.py`, `src/aegisai/middleware/api_key.py`, `src/aegisai/services/job_concurrency.py`, `src/aegisai/services/job_store.py`, `src/aegisai/services/metrics.py`, `src/aegisai/api/routes/v1_jobs.py`, `src/aegisai/benchmarks/*`, `benchmarks/run_v0.py`, `benchmarks/README.md`, `tests/conftest.py`, `tests/test_phase2_platform.py`, `tests/test_benchmark_image_v0.py`, `README.md`, `.env.example`, `tasks.md`, `LOG.md`
+
 ### Entry 10 — Metrics, CI gate, train stub
 
 - **Prompt summary:** Continue next phases: observability/metrics, CI, benchmark gate, runnable fine-tuning stub.

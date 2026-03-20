@@ -82,11 +82,17 @@ Inspect the effective rules: `GET /v1/policy`.
 
 Every job stores an initial **`policy`** event with the policy version and route.
 
+## Phase 2 — platform guardrails (optional)
+
+- **`AEGISAI_API_KEY`** — when set, all `/v1/*` routes require `Authorization: Bearer <key>` or `X-API-Key: <key>`. `/health`, `/metrics`, and OpenAPI UIs stay open (tighten at your proxy if needed).
+- **`AEGISAI_MAX_CONCURRENT_JOBS`** — cap parallel pipeline executions; additional `POST /v1/jobs` returns **429** until a slot frees.
+- **`Idempotency-Key` header** on `POST /v1/jobs` — replays return the same `job_id` without enqueueing a duplicate (in-memory store; use for client retries).
+
 ## Observability (lightweight)
 
 - Responses include **`X-Request-ID`** (pass the same header to correlate client retries).
 - Job creation logs a line at INFO with `job_id`, `request_id`, `mode`, and label.
-- **Prometheus-style metrics:** `GET /metrics` (root scrape) and `GET /v1/metrics` — JSON by default; `GET /v1/metrics?format=prometheus` for text exposition (counters + per-pipeline breakdown + rolling latency).
+- **Prometheus-style metrics:** `GET /metrics` (root scrape) and `GET /v1/metrics` — JSON by default; `GET /v1/metrics?format=prometheus` for text exposition (counters + per-pipeline breakdown + rolling latency + **`jobs_in_flight`** gauge).
 - Optional **OTEL** FastAPI spans when `AEGISAI_OTEL_ENABLED=true` and `aegisai[otel]` is installed.
 
 ## Quickstart
