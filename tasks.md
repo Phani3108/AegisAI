@@ -103,6 +103,12 @@
 - [x] Added simple README screenshot carousel section
 - [x] Kept README wording short and easy to read
 
+## Phase 13 — Durable job backbone
+
+- [x] Persisted jobs + job requests to disk-backed state in [`job_store`](src/aegisai/services/job_store.py)
+- [x] Added startup recovery for queued/running jobs ([`job_recovery.py`](src/aegisai/services/job_recovery.py), wired in [`main.py`](src/aegisai/main.py))
+- [x] Kept existing API contract stable while adding durable behavior ([`v1_jobs`](src/aegisai/api/routes/v1_jobs.py))
+
 ---
 
 ## Backlog / ideas (not committed)

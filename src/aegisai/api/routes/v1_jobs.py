@@ -100,7 +100,7 @@ async def effective_routing_policy(request: Request) -> dict:
 )
 async def create_job(
     request: Request,
-    background_tasks: BackgroundTasks,
+    background_tasks: BackgroundTasks,  # kept for API compatibility
     body: JobRequest,
     idempotency_key: str | None = Header(default=None, alias="Idempotency-Key"),
 ) -> JobCreateResponse:
@@ -177,7 +177,7 @@ async def create_job(
             ),
             route=route,
         )
-        await job_store.set_job(
+        await job_store.set_job_with_request(
             job_id,
             JobStatusResponse(
                 job_id=job_id,
@@ -189,6 +189,7 @@ async def create_job(
                 result=None,
                 error=None,
             ),
+            body,
         )
     except Exception:
         if idem_key:

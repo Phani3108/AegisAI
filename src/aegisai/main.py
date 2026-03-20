@@ -22,6 +22,7 @@ from aegisai.middleware.request_id import RequestIdMiddleware
 from aegisai.policy.loader import load_routing_policy
 from aegisai.services import redis_util
 from aegisai.services.job_concurrency import configure_limiter
+from aegisai.services.job_recovery import resume_incomplete_jobs
 from aegisai.telemetry.otel import maybe_instrument
 
 _cfg0 = get_settings()
@@ -51,6 +52,7 @@ async def lifespan(app: FastAPI):
             app.state.http = client
             app.state.policy = policy
             app.state.chroma = chroma_client
+            await resume_incomplete_jobs(app)
             yield
     finally:
         if rc is not None:

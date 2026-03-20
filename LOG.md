@@ -79,6 +79,11 @@ Append-only chronological record. Each entry: **date**, **user prompt (summary)*
 - **Prompt summary:** Take project screenshots, add them to README in carousel mode, keep language simple, push to GitHub.
 - **Actions:** Captured screenshots to [`docs/images/screenshots/`](docs/images/screenshots/) using Playwright CLI from the live demo page: `demo-home.png`, `demo-sample.png`, `demo-polling.png`. Added a simple collapsible carousel section to [`README.md`](README.md), kept wording minimal, and updated [`tasks.md`](tasks.md).
 
+### Entry 24 — Phase 13: durable jobs + restart recovery
+
+- **Prompt summary:** Implement forward plan phase for durable job backbone.
+- **Actions:** Added disk-backed persistence for jobs/requests/idempotency in [`job_store`](src/aegisai/services/job_store.py) and startup recovery task in [`job_recovery.py`](src/aegisai/services/job_recovery.py), wired through [`main.py`](src/aegisai/main.py). Kept API endpoints stable in [`v1_jobs`](src/aegisai/api/routes/v1_jobs.py). Full QA gate passed (52 tests).
+
 ### Entry 19 — Phase 9: OpenAPI polish, integrator kit, demo UI, optional Redis
 
 - **Prompt summary:** Implement attached plan (planning §9, OpenAPI, .http + SDK doc, demo UI, Redis idempotency/rate limit).
