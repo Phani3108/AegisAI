@@ -1,9 +1,13 @@
 # AegisAI
 
+[![CI](https://github.com/Phani3108/AegisAI/actions/workflows/ci.yml/badge.svg)](https://github.com/Phani3108/AegisAI/actions/workflows/ci.yml)
+
 **Local-first multimodal API** — vision → LLM → RAG — with optional hybrid routing, DLP-style gates, Chroma persistence, metrics, and deployment sketches (Docker, Helm). Designed for an **enterprise privacy** posture: run inference next to your data; control what leaves the machine via policy.
 
 **Repository:** [github.com/Phani3108/AegisAI](https://github.com/Phani3108/AegisAI)  
 **Docs:** [planning.md](planning.md) (architecture & tiers) · [tasks.md](tasks.md) (checklist) · [LOG.md](LOG.md) (changelog) · [docs/integrators/SDK.md](docs/integrators/SDK.md) (OpenAPI / clients)
+
+**Status:** Phases **0–9** shipped (see roadmap table below). CI runs **Ruff**, **pytest** (3.11 + 3.12), package **build**, and **Docker image build**. Optional extras: **`aegisai[otel]`**, **`aegisai[redis]`** (shared idempotency + rate limits across replicas).
 
 ---
 
@@ -72,8 +76,8 @@ Optional **browser demo:** [examples/demo-ui/](examples/demo-ui/) (static `index
 | **5** | Packaging | **Dockerfile**, **docker-compose** (Ollama + app), **`GET /version`** |
 | **6** | Ops polish | **`AEGISAI_LOG_JSON`**, WebSocket API-key parity (header / query), **Docker build in CI** |
 | **7** | K8s probes | **`GET /live`**, **`GET /ready`** (Ollama + Chroma writable), Helm **`livenessProbe` / `readinessProbe`**, shared [`readiness`](src/aegisai/services/readiness.py) |
-| **8** | T1 throttling | **`AEGISAI_RATE_LIMIT_PER_MINUTE`** — per-client-IP rolling cap on **`/v1/*`** (**429** + `Retry-After`), counter **`aegisai_http_429_rate_limited_total`** (in-process; one replica) |
-| **9** | Integrator & scale | OpenAPI tags + error schemas; **HTTP examples**; **Redis** optional for idempotency + rate limit (**`aegisai[redis]`**); static **demo UI** |
+| **8** | T1 throttling | **`AEGISAI_RATE_LIMIT_PER_MINUTE`** — rolling cap on **`/v1/*`** per client IP (**429** + `Retry-After`); counter **`aegisai_http_429_rate_limited_total`** (in-process by default) |
+| **9** | Integrator & scale | OpenAPI polish; **[examples/http/smoke.http](examples/http/smoke.http)**; optional **Redis** (**`AEGISAI_REDIS_URL`** + **`aegisai[redis]`**) for **Idempotency-Key** + rate limit across replicas; **[examples/demo-ui/](examples/demo-ui/)** |
 
 Scene-based video sampling, DLP prototype, and Helm chart are in-tree; see [tasks.md](tasks.md).
 
@@ -149,6 +153,8 @@ cd /path/to/AegisAI
 python3.11 -m venv .venv
 source .venv/bin/activate   # Windows: .venv\Scripts\activate
 pip install -e ".[dev]"
+# Optional: OpenTelemetry → pip install -e ".[dev,otel]"
+# Optional: Redis-backed idempotency / rate limit → pip install -e ".[dev,redis]"
 ```
 
 Copy [.env.example](.env.example) to `.env` and adjust.
@@ -172,11 +178,13 @@ curl -s http://127.0.0.1:8000/health | python -m json.tool
 curl -s http://127.0.0.1:8000/version | python -m json.tool
 ```
 
-**Ollama readiness** (lists models when Ollama is up):
+**Readiness** (Ollama + Chroma; **no API key** — same check as Kubernetes `readinessProbe`):
 
 ```bash
-curl -s http://127.0.0.1:8000/v1/ready | python -m json.tool
+curl -s http://127.0.0.1:8000/ready | python -m json.tool
 ```
+
+(Use **`GET /v1/ready`** only if you omit `AEGISAI_API_KEY`, or send **`Authorization: Bearer …`** / **`X-API-Key`** when the key is set.)
 
 **Image job** — use an absolute `file://` URI; if `AEGISAI_MEDIA_ROOT` is set, the file must sit under that directory:
 
