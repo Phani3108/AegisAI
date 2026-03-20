@@ -37,3 +37,13 @@ This runbook defines a repeatable validation cycle before production releases.
 - No data-loss symptoms for accepted jobs.
 - No sustained >2% 5xx during steady load.
 - p95/p99 remain within agreed service SLO for your environment.
+
+## Benchmark snapshot artifact
+
+Capture a quick baseline and commit the JSON artifact:
+
+```bash
+python scripts/benchmark_baseline.py --base-url http://127.0.0.1:8000 --requests 50
+```
+
+Output file: `docs/operations/benchmark_baseline.json`

@@ -90,6 +90,7 @@ Simple carousel view (open one slide at a time):
 
 - **Scale/failover runbook:** [docs/operations/scale_validation.md](docs/operations/scale_validation.md)
 - **Release checklist:** [docs/operations/release_checklist.md](docs/operations/release_checklist.md)
+- **Baseline benchmark script:** `python scripts/benchmark_baseline.py`
 
 ### Known limits
 
