@@ -134,6 +134,12 @@
 - [x] Replaced EventSource with header-capable fetch SSE stream parser for authenticated streaming
 - [x] Added structured payload builder templates (image/document/video) to reduce JSON mistakes
 
+## Phase 18 — Scale validation + release hardening
+
+- [x] Added production Helm defaults (resources/security contexts/persistence/HPA/PDB)
+- [x] Added scale/failover validation runbook (`docs/operations/scale_validation.md`)
+- [x] Added release hardening checklist (`docs/operations/release_checklist.md`) and known limits section in README
+
 ---
 
 ## Backlog / ideas (not committed)

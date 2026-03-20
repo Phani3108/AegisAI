@@ -262,4 +262,4 @@ Phased approach to avoid overbuilding:
 
 ---
 
-*Last updated: Phase 17 (auth-capable frontend streaming + structured payload UX — see [tasks.md](tasks.md)).*
+*Last updated: Phase 18 (Helm production hardening + scale/release runbooks — see [tasks.md](tasks.md)).*

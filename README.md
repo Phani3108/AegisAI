@@ -7,7 +7,7 @@
 **Repository:** [github.com/Phani3108/AegisAI](https://github.com/Phani3108/AegisAI)  
 **Docs:** [planning.md](planning.md) (architecture & tiers) · [tasks.md](tasks.md) (checklist) · [LOG.md](LOG.md) (changelog) · [docs/integrators/SDK.md](docs/integrators/SDK.md) (OpenAPI / clients)
 
-**Status:** Phases **0–17** shipped (see roadmap table below). CI runs **Ruff**, **pytest** (3.11 + 3.12), package **build**, and **Docker image build**. Optional extras: **`aegisai[otel]`**, **`aegisai[redis]`** (shared idempotency + rate limits across replicas).
+**Status:** Phases **0–18** shipped (see roadmap table below). CI runs **Ruff**, **pytest** (3.11 + 3.12), package **build**, and **Docker image build**. Optional extras: **`aegisai[otel]`**, **`aegisai[redis]`** (shared idempotency + rate limits across replicas).
 
 ---
 
@@ -86,6 +86,19 @@ Simple carousel view (open one slide at a time):
 
 ---
 
+## Operations
+
+- **Scale/failover runbook:** [docs/operations/scale_validation.md](docs/operations/scale_validation.md)
+- **Release checklist:** [docs/operations/release_checklist.md](docs/operations/release_checklist.md)
+
+### Known limits
+
+- Throughput is model and hardware bound (Ollama host CPU/GPU dominates latency).
+- Browser SSE streams require stable network and client reconnect logic for long runs.
+- Multi-replica distributed semantics are strongest when Redis is enabled.
+
+---
+
 ## Capability roadmap (phases)
 
 | Phase | Focus | Highlights |
@@ -108,6 +121,7 @@ Simple carousel view (open one slide at a time):
 | **15** | Resilience observability | Added Ollama retry/backoff wrappers, request-id log context, and latency p95/p99 metrics |
 | **16** | Security governance | Added JWT/API-key auth modes, optional protected ops endpoints, and role-aware hybrid policy controls |
 | **17** | Operator UX | Demo UI now supports authenticated SSE streaming headers and structured payload templates |
+| **18** | Scale + release | Added production Helm defaults plus scale/failover runbook and release checklist |
 
 Scene-based video sampling, DLP prototype, and Helm chart are in-tree; see [tasks.md](tasks.md).
 

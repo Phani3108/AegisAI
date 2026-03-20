@@ -1,4 +1,4 @@
-replicaCount: 1
+replicaCount: 2
 
 image:
   repository: aegisai
@@ -9,7 +9,13 @@ service:
   type: ClusterIP
   port: 8000
 
-resources: {}
+resources:
+  requests:
+    cpu: "250m"
+    memory: "512Mi"
+  limits:
+    cpu: "1000m"
+    memory: "1Gi"
 
 env:
   AEGISAI_OLLAMA_BASE_URL: "http://ollama:11434"
@@ -18,6 +24,28 @@ env:
 extraEnv: []
 
 persistence:
-  enabled: false
+  enabled: true
   storageClass: ""
   size: 10Gi
+
+podSecurityContext:
+  fsGroup: 10001
+
+containerSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 10001
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: false
+  capabilities:
+    drop:
+      - ALL
+
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 8
+  targetCPUUtilizationPercentage: 70
+
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 1

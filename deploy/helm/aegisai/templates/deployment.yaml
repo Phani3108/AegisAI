@@ -14,6 +14,8 @@ spec:
       labels:
         app.kubernetes.io/name: {{ include "aegisai.name" . }}
     spec:
+      securityContext:
+{{ toYaml .Values.podSecurityContext | indent 8 }}
       containers:
         - name: aegisai
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
@@ -35,6 +37,10 @@ spec:
             - name: chroma
               mountPath: /data/chroma
           {{- end }}
+          securityContext:
+{{ toYaml .Values.containerSecurityContext | indent 12 }}
+          resources:
+{{ toYaml .Values.resources | indent 12 }}
           readinessProbe:
             httpGet:
               path: /ready

@@ -104,6 +104,11 @@ Append-only chronological record. Each entry: **date**, **user prompt (summary)*
 - **Prompt summary:** Upgrade frontend for auth-capable streaming and cleaner structured input flow.
 - **Actions:** Updated demo UI with auth header mode selector (Bearer or X-API-Key), replaced EventSource-based SSE with a header-capable fetch stream parser, and added structured payload templates for image/document/video in [`examples/demo-ui/index.html`](examples/demo-ui/index.html). Updated demo docs in [`examples/demo-ui/README.md`](examples/demo-ui/README.md). Full QA gate passed (54 tests).
 
+### Entry 29 — Phase 18: scale validation + release hardening
+
+- **Prompt summary:** Finalize scale/release readiness with production deployment defaults and validation docs.
+- **Actions:** Updated Helm values/deployment defaults for production (resources, security contexts, persistence, HPA, PDB) and added HPA/PDB templates under [`deploy/helm/aegisai/templates`](deploy/helm/aegisai/templates). Added operations docs: [`scale_validation.md`](docs/operations/scale_validation.md) and [`release_checklist.md`](docs/operations/release_checklist.md), plus README operations/known-limits links. Full QA gate passed (54 tests).
+
 ### Entry 19 — Phase 9: OpenAPI polish, integrator kit, demo UI, optional Redis
 
 - **Prompt summary:** Implement attached plan (planning §9, OpenAPI, .http + SDK doc, demo UI, Redis idempotency/rate limit).
