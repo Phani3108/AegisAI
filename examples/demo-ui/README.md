@@ -1,7 +1,7 @@
 # AegisAI demo UI (static)
 
 Minimal **single-page** helper to try the API from a browser without curl.
-Phase 10 refresh adds a clean white theme and better operator-focused controls.
+Phase 10+ refresh adds a clean white theme and better operator-focused controls.
 
 ## How to run
 
@@ -20,6 +20,8 @@ Phase 10 refresh adds a clean white theme and better operator-focused controls.
    - **Check /ready** for backend readiness
    - **Load /v1/policy** for routing visibility
    - **Create Job** and **Refresh Job**
+   - **Cancel Job** for running jobs
+   - **Start /events stream** for live SSE event feed
    - **Start Auto Refresh** to poll job status every N seconds
 5. You can copy response JSON, clear output, and beautify request JSON from the built-in controls.
 
@@ -28,6 +30,8 @@ Phase 10 refresh adds a clean white theme and better operator-focused controls.
 - White-background card layout for readability
 - Connection status pill (ready/not-ready)
 - Sample request + beautify
+- Job cancel action
+- Live SSE event stream viewer for `GET /v1/jobs/{id}/events`
 - Job polling controls (off/2s/5s/10s)
 - Response copy/clear actions and request timestamp metadata
 

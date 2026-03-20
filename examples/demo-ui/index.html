@@ -164,6 +164,35 @@
       gap: 1rem;
       flex-wrap: wrap;
     }
+    .events {
+      margin-top: 0.75rem;
+      border: 1px solid #e5e7eb;
+      border-radius: 10px;
+      background: #f8fafc;
+      min-height: 180px;
+      max-height: 260px;
+      overflow: auto;
+      padding: 0.6rem;
+      font-size: 0.8rem;
+    }
+    .event-row {
+      border-bottom: 1px dashed #d1d5db;
+      padding: 0.35rem 0;
+    }
+    .event-row:last-child {
+      border-bottom: 0;
+    }
+    .event-time {
+      color: #6b7280;
+      font-size: 0.74rem;
+      margin-right: 0.5rem;
+    }
+    .event-msg {
+      color: #1f2937;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
     .response-head {
       display: flex;
       align-items: center;
@@ -261,6 +290,7 @@
         <div class="btns">
           <button id="btnCreate" class="primary" type="button">Create Job</button>
           <button id="btnGet" type="button">Refresh Job</button>
+          <button id="btnCancel" class="warn" type="button">Cancel Job</button>
           <button id="btnPoll" class="good" type="button">Start Auto Refresh</button>
           <button id="btnStop" class="warn" type="button">Stop Auto Refresh</button>
         </div>
@@ -283,6 +313,13 @@
           <span id="lastReq" class="muted">Last request: none</span>
           <span id="lastAt" class="muted">Updated: never</span>
         </div>
+
+        <h2 style="margin-top:1rem">Live Job Events (SSE)</h2>
+        <div class="btns" style="margin-top:0.35rem">
+          <button id="btnEventsStart" type="button">Start /events stream</button>
+          <button id="btnEventsStop" type="button">Stop stream</button>
+        </div>
+        <div id="events" class="events" aria-live="polite"></div>
       </section>
     </div>
   </div>
@@ -291,6 +328,7 @@
     const $ = (id) => document.getElementById(id);
     const base = () => $("base").value.trim().replace(/\/$/, "");
     let pollTimer = null;
+    let eventSource = null;
 
     const nowStamp = () => new Date().toLocaleTimeString();
 
@@ -309,6 +347,22 @@
     const show = (obj, label) => {
       $("out").textContent = typeof obj === "string" ? obj : JSON.stringify(obj, null, 2);
       if (label) markMeta(label);
+    };
+
+    const appendEvent = (msg) => {
+      const host = $("events");
+      const row = document.createElement("div");
+      row.className = "event-row";
+      const stamp = document.createElement("span");
+      stamp.className = "event-time";
+      stamp.textContent = nowStamp();
+      const body = document.createElement("span");
+      body.className = "event-msg";
+      body.textContent = typeof msg === "string" ? msg : JSON.stringify(msg);
+      row.appendChild(stamp);
+      row.appendChild(body);
+      host.appendChild(row);
+      host.scrollTop = host.scrollHeight;
     };
 
     const setConn = (text, good = false) => {
@@ -373,6 +427,46 @@
       }
     };
 
+    const stopEventStream = () => {
+      if (eventSource) {
+        eventSource.close();
+        eventSource = null;
+        appendEvent("stream closed");
+      }
+    };
+
+    const startEventStream = () => {
+      stopEventStream();
+      const id = $("jobId").value.trim();
+      if (!id) {
+        show("Set job ID first.", "GET /v1/jobs/{id}/events");
+        return;
+      }
+      const key = $("apiKey").value.trim();
+      if (key) {
+        appendEvent("API key is set: browser EventSource cannot send Authorization headers.");
+        appendEvent("Use no API key for demo stream or stream via your own backend proxy.");
+      }
+      const url = base() + "/v1/jobs/" + encodeURIComponent(id) + "/events";
+      eventSource = new EventSource(url);
+      appendEvent("stream open: " + url);
+      eventSource.onmessage = (ev) => {
+        if (ev.data === "[DONE]") {
+          appendEvent("[DONE]");
+          stopEventStream();
+          return;
+        }
+        try {
+          appendEvent(JSON.parse(ev.data));
+        } catch {
+          appendEvent(ev.data);
+        }
+      };
+      eventSource.onerror = () => {
+        appendEvent("stream error");
+      };
+    };
+
     const startPolling = () => {
       stopPolling();
       const sec = Number($("pollSec").value || "0");
@@ -430,6 +524,19 @@
       await getJob();
     };
 
+    $("btnCancel").onclick = async () => {
+      const id = $("jobId").value.trim();
+      if (!id) {
+        show("Set job ID first.", "POST /v1/jobs/{id}/cancel");
+        return;
+      }
+      await request(
+        "/v1/jobs/" + encodeURIComponent(id) + "/cancel",
+        { method: "POST", headers: headers() },
+        "POST /v1/jobs/{id}/cancel"
+      );
+    };
+
     $("btnPoll").onclick = () => {
       startPolling();
     };
@@ -437,6 +544,14 @@
     $("btnStop").onclick = () => {
       stopPolling();
       show("Auto refresh stopped.", "Auto refresh");
+    };
+
+    $("btnEventsStart").onclick = () => {
+      startEventStream();
+    };
+
+    $("btnEventsStop").onclick = () => {
+      stopEventStream();
     };
 
     $("btnCopy").onclick = async () => {
@@ -456,6 +571,7 @@
 
     window.addEventListener("beforeunload", () => {
       stopPolling();
+      stopEventStream();
     });
 
     $("body").value = JSON.stringify(sampleBody(), null, 2);

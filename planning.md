@@ -262,4 +262,4 @@ Phased approach to avoid overbuilding:
 
 ---
 
-*Last updated: Phase 10 (frontend polish for demo UI; white theme + UX controls — see [tasks.md](tasks.md)).*
+*Last updated: Phase 11 (frontend realtime controls: cancel + SSE events in demo UI — see [tasks.md](tasks.md)).*

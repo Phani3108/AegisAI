@@ -91,6 +91,12 @@
 - [x] Better controls: readiness check, beautify JSON, copy/clear response, auto-refresh polling
 - [x] UI docs refreshed ([`examples/demo-ui/README.md`](examples/demo-ui/README.md), [`README.md`](README.md))
 
+## Phase 11 — Frontend realtime controls (demo UI)
+
+- [x] Job cancel button for `POST /v1/jobs/{id}/cancel` in the demo UI
+- [x] Live SSE event stream panel for `GET /v1/jobs/{id}/events`
+- [x] README + demo-ui docs updated for realtime controls
+
 ---
 
 ## Backlog / ideas (not committed)

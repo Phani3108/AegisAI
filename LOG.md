@@ -69,6 +69,11 @@ Append-only chronological record. Each entry: **date**, **user prompt (summary)*
 - **Prompt summary:** Continue to next phase, ensure frontend has white background and improved elements, run thorough QA, then push.
 - **Actions:** Rebuilt [`examples/demo-ui/index.html`](examples/demo-ui/index.html) with white background card layout, improved typography/buttons, readiness status pill, policy/readiness actions, sample+beautify JSON, create/refresh job flow, auto-refresh polling (2s/5s/10s), and response copy/clear with timestamps. Updated frontend docs and roadmap (`README`, `tasks`, `planning`).
 
+### Entry 22 — Phase 11: realtime frontend controls (cancel + SSE events)
+
+- **Prompt summary:** Continue next frontend phase with thorough testing and push.
+- **Actions:** Extended [`examples/demo-ui/index.html`](examples/demo-ui/index.html) with **Cancel Job** action (`POST /v1/jobs/{id}/cancel`) and a live **SSE events panel** for `/v1/jobs/{id}/events` (start/stop stream controls + event log). Updated [`examples/demo-ui/README.md`](examples/demo-ui/README.md), [`README.md`](README.md), [`tasks.md`](tasks.md), and [`planning.md`](planning.md) for Phase 11.
+
 ### Entry 19 — Phase 9: OpenAPI polish, integrator kit, demo UI, optional Redis
 
 - **Prompt summary:** Implement attached plan (planning §9, OpenAPI, .http + SDK doc, demo UI, Redis idempotency/rate limit).
