@@ -7,7 +7,7 @@
 **Repository:** [github.com/Phani3108/AegisAI](https://github.com/Phani3108/AegisAI)  
 **Docs:** [planning.md](planning.md) (architecture & tiers) · [tasks.md](tasks.md) (checklist) · [LOG.md](LOG.md) (changelog) · [docs/integrators/SDK.md](docs/integrators/SDK.md) (OpenAPI / clients)
 
-**Status:** Phases **0–11** shipped (see roadmap table below). CI runs **Ruff**, **pytest** (3.11 + 3.12), package **build**, and **Docker image build**. Optional extras: **`aegisai[otel]`**, **`aegisai[redis]`** (shared idempotency + rate limits across replicas).
+**Status:** Phases **0–12** shipped (see roadmap table below). CI runs **Ruff**, **pytest** (3.11 + 3.12), package **build**, and **Docker image build**. Optional extras: **`aegisai[otel]`**, **`aegisai[redis]`** (shared idempotency + rate limits across replicas).
 
 ---
 
@@ -21,6 +21,7 @@
 - [Quickstart: local Python](#quickstart-local-python)
 - [Smoke checks & examples](#smoke-checks--examples)
 - [Five-minute path](#five-minute-path)
+- [Screenshots](#screenshots)
 - [Integrators (OpenAPI / clients)](#integrators-openapi--clients)
 - [HTTP API summary](#http-api-summary)
 - [Job request model](#job-request-model)
@@ -56,6 +57,27 @@ Optional **browser demo:** [examples/demo-ui/](examples/demo-ui/) (Phase 11 poli
 
 ---
 
+## Screenshots
+
+Simple carousel view (open one slide at a time):
+
+<details>
+  <summary>Slide 1/3 — Home</summary>
+  <img src="docs/images/screenshots/demo-home.png" alt="AegisAI demo home screen" />
+</details>
+
+<details>
+  <summary>Slide 2/3 — Sample job request</summary>
+  <img src="docs/images/screenshots/demo-sample.png" alt="AegisAI demo with sample request body" />
+</details>
+
+<details>
+  <summary>Slide 3/3 — Auto-refresh state</summary>
+  <img src="docs/images/screenshots/demo-polling.png" alt="AegisAI demo with polling enabled" />
+</details>
+
+---
+
 ## Integrators (OpenAPI / clients)
 
 - **Live schema:** `/openapi.json` · **Swagger UI:** `/docs`
@@ -80,6 +102,7 @@ Optional **browser demo:** [examples/demo-ui/](examples/demo-ui/) (Phase 11 poli
 | **9** | Integrator & scale | OpenAPI polish; **[examples/http/smoke.http](examples/http/smoke.http)**; optional **Redis** (**`AEGISAI_REDIS_URL`** + **`aegisai[redis]`**) for **Idempotency-Key** + rate limit across replicas; **[examples/demo-ui/](examples/demo-ui/)** |
 | **10** | Frontend polish | Demo UI refresh with **white background**, improved cards/buttons, readiness check, job auto-refresh, and response utilities |
 | **11** | Frontend realtime UX | Demo UI adds **cancel job** action and **live SSE events viewer** (`/v1/jobs/{id}/events`) to make job progress easier to track |
+| **12** | Docs UX | Added demo screenshots in simple README carousel format for quick visual onboarding |
 
 Scene-based video sampling, DLP prototype, and Helm chart are in-tree; see [tasks.md](tasks.md).
 

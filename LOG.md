@@ -74,6 +74,11 @@ Append-only chronological record. Each entry: **date**, **user prompt (summary)*
 - **Prompt summary:** Continue next frontend phase with thorough testing and push.
 - **Actions:** Extended [`examples/demo-ui/index.html`](examples/demo-ui/index.html) with **Cancel Job** action (`POST /v1/jobs/{id}/cancel`) and a live **SSE events panel** for `/v1/jobs/{id}/events` (start/stop stream controls + event log). Updated [`examples/demo-ui/README.md`](examples/demo-ui/README.md), [`README.md`](README.md), [`tasks.md`](tasks.md), and [`planning.md`](planning.md) for Phase 11.
 
+### Entry 23 — Phase 12: screenshots + README carousel
+
+- **Prompt summary:** Take project screenshots, add them to README in carousel mode, keep language simple, push to GitHub.
+- **Actions:** Captured screenshots to [`docs/images/screenshots/`](docs/images/screenshots/) using Playwright CLI from the live demo page: `demo-home.png`, `demo-sample.png`, `demo-polling.png`. Added a simple collapsible carousel section to [`README.md`](README.md), kept wording minimal, and updated [`tasks.md`](tasks.md).
+
 ### Entry 19 — Phase 9: OpenAPI polish, integrator kit, demo UI, optional Redis
 
 - **Prompt summary:** Implement attached plan (planning §9, OpenAPI, .http + SDK doc, demo UI, Redis idempotency/rate limit).

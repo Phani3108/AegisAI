@@ -97,6 +97,12 @@
 - [x] Live SSE event stream panel for `GET /v1/jobs/{id}/events`
 - [x] README + demo-ui docs updated for realtime controls
 
+## Phase 12 — Visual onboarding docs
+
+- [x] Captured demo screenshots under [`docs/images/screenshots/`](docs/images/screenshots/)
+- [x] Added simple README screenshot carousel section
+- [x] Kept README wording short and easy to read
+
 ---
 
 ## Backlog / ideas (not committed)

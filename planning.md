@@ -262,4 +262,4 @@ Phased approach to avoid overbuilding:
 
 ---
 
-*Last updated: Phase 11 (frontend realtime controls: cancel + SSE events in demo UI — see [tasks.md](tasks.md)).*
+*Last updated: Phase 12 (screenshots + simple README carousel — see [tasks.md](tasks.md)).*

@@ -575,6 +575,16 @@
     });
 
     $("body").value = JSON.stringify(sampleBody(), null, 2);
+
+    // Screenshot helpers: /?mode=sample or /?mode=polling
+    const mode = new URLSearchParams(window.location.search).get("mode");
+    if (mode === "sample") {
+      $("btnSample").click();
+    } else if (mode === "polling") {
+      $("btnSample").click();
+      $("pollSec").value = "2";
+      $("btnPoll").click();
+    }
   </script>
 </body>
 </html>
