@@ -513,7 +513,7 @@
       eventsAbort = new AbortController();
       streamWithFetch(url).catch((e) => {
         appendEvent("stream error: " + (e && e.message ? e.message : String(e)));
-      };
+      });
     };
 
     const startPolling = () => {
