@@ -22,7 +22,6 @@ from fastapi.responses import StreamingResponse
 from aegisai.config import Settings, get_settings
 from aegisai.dlp.scan import scan_request_text
 from aegisai.middleware.ws_auth import websocket_shared_secret_authorized
-from aegisai.ollama.client import OllamaClient
 from aegisai.policy.routing import RoutingPolicy
 from aegisai.schemas.jobs import (
     InputType,
@@ -36,6 +35,7 @@ from aegisai.services import job_store
 from aegisai.services.job_cancel import request_cancel
 from aegisai.services.job_concurrency import get_limiter
 from aegisai.services.job_runner import execute_job
+from aegisai.services.readiness import readiness_details
 
 logger = logging.getLogger(__name__)
 
@@ -60,17 +60,14 @@ def _utcnow() -> datetime:
 
 
 @router.get("/ready")
-async def ready(request: Request) -> dict:
-    """Returns 200 when Ollama responds to /api/tags; 503 otherwise."""
+async def ready_v1(request: Request) -> dict[str, object]:
+    """Same as GET /ready but under /v1 (requires API key when AEGISAI_API_KEY is set)."""
     settings = request.app.state.settings
     http = request.app.state.http
-    ollama = OllamaClient(settings.ollama_base_url, http, timeout_s=10.0)
     try:
-        data = await ollama.tags()
-        names = [m.get("name", "") for m in data.get("models", [])]
-        return {"ollama": "ok", "models": names}
+        return await readiness_details(settings, http)
     except Exception as e:
-        raise HTTPException(status_code=503, detail=f"ollama unavailable: {e!s}") from e
+        raise HTTPException(status_code=503, detail=f"not ready: {e!s}") from e
 
 
 @router.get("/policy")

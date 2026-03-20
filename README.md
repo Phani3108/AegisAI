@@ -49,6 +49,7 @@
 | **4** | Control | `POST .../cancel`, WebSocket `/v1/ws/jobs/{id}`, cancel metrics, **`scripts/qa_verify.sh`** in CI |
 | **5** | Packaging | **Dockerfile**, **docker-compose** (Ollama + app), **`GET /version`** |
 | **6** | Ops polish | **`AEGISAI_LOG_JSON`**, WebSocket API-key parity (header / query), **Docker build in CI** |
+| **7** | K8s probes | **`GET /live`**, **`GET /ready`** (Ollama + Chroma writable), Helm **`livenessProbe` / `readinessProbe`**, shared [`readiness`](src/aegisai/services/readiness.py) |
 
 Scene-based video sampling, DLP prototype, and Helm chart are in-tree; see [tasks.md](tasks.md).
 
@@ -188,10 +189,12 @@ python benchmarks/run_v0.py /absolute/path/to/image.png --question "Summarize vi
 
 | Method | Path | Purpose |
 |--------|------|---------|
-| GET | `/health` | Liveness |
+| GET | `/health` | Simple OK (legacy / general) |
+| GET | `/live` | **Liveness** — process up (Kubernetes **livenessProbe**) |
+| GET | `/ready` | **Readiness** — Ollama + Chroma dir (Kubernetes **readinessProbe**; no API key) |
 | GET | `/version` | Package name + version |
 | GET | `/metrics` | Prometheus scrape (text) |
-| GET | `/v1/ready` | Ollama tags probe |
+| GET | `/v1/ready` | Same readiness as `/ready`, under **`/v1`** (API key applies when set) |
 | GET | `/v1/policy` | Effective hybrid routing JSON |
 | GET | `/v1/metrics` | JSON metrics; `?format=prometheus` |
 | POST | `/v1/jobs` | Create async job (`Idempotency-Key` optional) |
@@ -206,7 +209,7 @@ python benchmarks/run_v0.py /absolute/path/to/image.png --question "Summarize vi
 
 Interactive OpenAPI: `/docs`, `/redoc`.
 
-When **`AEGISAI_API_KEY`** is set, **`/v1/*`** requires `Authorization: Bearer <key>` or `X-API-Key` (except public paths: `/health`, `/version`, `/metrics`, docs, OpenAPI).
+When **`AEGISAI_API_KEY`** is set, **`/v1/*`** requires `Authorization: Bearer <key>` or `X-API-Key` (except public paths: `/health`, **`/live`**, **`/ready`**, `/version`, `/metrics`, docs, OpenAPI).
 
 ---
 

@@ -3,6 +3,7 @@
 - **Image**: set `image.repository` / `image.tag` to your registry build (this repo does not publish a default image).
 - **Ollama**: point `AEGISAI_OLLAMA_BASE_URL` at an in-cluster `Service` or sidecar; the default `values.yaml` assumes a service named `ollama` on port `11434`.
 - **Chroma**: enable `persistence.enabled` and size `persistence.size` for durable vector storage.
+- **Probes**: `livenessProbe` uses **`GET /live`**; `readinessProbe` uses **`GET /ready`** (checks Ollama reachability and Chroma volume writability). No API key on those paths.
 
 ```bash
 helm upgrade --install aegisai ./deploy/helm/aegisai \

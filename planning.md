@@ -259,4 +259,4 @@ Phased approach to avoid overbuilding:
 
 ---
 
-*Last updated: Phase 6 (JSON logs, WS API-key parity, CI Docker build).*
+*Last updated: Phase 7 (K8s /live, /ready, Helm probes).*

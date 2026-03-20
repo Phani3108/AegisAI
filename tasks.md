@@ -62,6 +62,14 @@
 - [x] **CI `docker-build` job** — verify image build ([`.github/workflows/ci.yml`](.github/workflows/ci.yml))
 - [x] Tests [`tests/test_phase6_ws_auth.py`](tests/test_phase6_ws_auth.py)
 
+## Phase 7 — Kubernetes probes
+
+- [x] **`GET /live`** — liveness ([`health.py`](src/aegisai/api/routes/health.py))
+- [x] **`GET /ready`** — Ollama + Chroma persist writable ([`readiness.py`](src/aegisai/services/readiness.py)); exempt from API key
+- [x] **`GET /v1/ready`** — same checks behind optional API key
+- [x] Helm **`livenessProbe` → `/live`**, **`readinessProbe` → `/ready`** ([`deploy/helm/aegisai`](deploy/helm/aegisai/templates/deployment.yaml))
+- [x] Tests [`tests/test_phase7_probes.py`](tests/test_phase7_probes.py)
+
 ---
 
 ## Backlog / ideas (not committed)
