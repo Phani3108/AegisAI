@@ -16,6 +16,7 @@ from aegisai.api.routes import (
 from aegisai.config import get_settings
 from aegisai.logging_json import configure_logging
 from aegisai.middleware.api_key import APIKeyMiddleware
+from aegisai.middleware.rate_limit import RateLimitMiddleware
 from aegisai.middleware.request_id import RequestIdMiddleware
 from aegisai.policy.loader import load_routing_policy
 from aegisai.services.job_concurrency import configure_limiter
@@ -51,6 +52,7 @@ app = FastAPI(
 
 app.add_middleware(RequestIdMiddleware)
 app.add_middleware(APIKeyMiddleware)
+app.add_middleware(RateLimitMiddleware)
 
 app.include_router(health.router, tags=["health"])
 app.include_router(ops_metrics.router, tags=["metrics"])

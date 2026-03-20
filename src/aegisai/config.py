@@ -67,6 +67,14 @@ class Settings(BaseSettings):
         default=False,
         description="Emit one JSON object per log line on stderr (for Loki/ELK/K8s).",
     )
+    rate_limit_per_minute: int | None = Field(
+        default=None,
+        ge=1,
+        le=1_000_000,
+        description=(
+            "If set, cap /v1/* requests per client IP per rolling 60s (429 Too Many Requests)."
+        ),
+    )
 
 
 def get_settings() -> Settings:

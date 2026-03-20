@@ -70,6 +70,13 @@
 - [x] Helm **`livenessProbe` → `/live`**, **`readinessProbe` → `/ready`** ([`deploy/helm/aegisai`](deploy/helm/aegisai/templates/deployment.yaml))
 - [x] Tests [`tests/test_phase7_probes.py`](tests/test_phase7_probes.py)
 
+## Phase 8 — Request throttling (T1-lite)
+
+- [x] **`AEGISAI_RATE_LIMIT_PER_MINUTE`** — rolling 60s / client IP / **`/v1/*`** ([`rate_limit.py`](src/aegisai/middleware/rate_limit.py))
+- [x] Counter **`http_429_rate_limited_total`** + Prometheus ([`metrics.py`](src/aegisai/services/metrics.py))
+- [x] Middleware order: rate limit outer → API key → request ID ([`main.py`](src/aegisai/main.py))
+- [x] Tests [`tests/test_phase8_rate_limit.py`](tests/test_phase8_rate_limit.py)
+
 ---
 
 ## Backlog / ideas (not committed)

@@ -11,6 +11,7 @@ _state: dict[str, Any] = {
     "jobs_completed_total": 0,
     "jobs_failed_total": 0,
     "jobs_cancelled_total": 0,
+    "http_429_rate_limited_total": 0,
     "by_pipeline": {},
     "latency_ms_sum": 0,
     "latency_ms_count": 0,
@@ -55,12 +56,18 @@ async def record_job_cancelled(pipeline: str) -> None:
         p["cancelled"] += 1
 
 
+async def record_rate_limited() -> None:
+    async with _lock:
+        _state["http_429_rate_limited_total"] += 1
+
+
 async def reset_for_tests() -> None:
     """Reset counters (intended for pytest)."""
     async with _lock:
         _state["jobs_completed_total"] = 0
         _state["jobs_failed_total"] = 0
         _state["jobs_cancelled_total"] = 0
+        _state["http_429_rate_limited_total"] = 0
         _state["by_pipeline"] = {}
         _state["latency_ms_sum"] = 0
         _state["latency_ms_count"] = 0
@@ -77,6 +84,7 @@ async def snapshot() -> dict[str, Any]:
             "jobs_completed_total": _state["jobs_completed_total"],
             "jobs_failed_total": _state["jobs_failed_total"],
             "jobs_cancelled_total": _state["jobs_cancelled_total"],
+            "http_429_rate_limited_total": _state["http_429_rate_limited_total"],
             "by_pipeline": {k: dict(v) for k, v in _state["by_pipeline"].items()},
             "latency_ms_avg": avg,
             "latency_ms_observations": _state["latency_ms_count"],
@@ -118,6 +126,13 @@ def render_prometheus(snap: dict[str, Any]) -> str:
     lines.append("# HELP aegisai_jobs_cancelled_total Cancelled async jobs.")
     lines.append("# TYPE aegisai_jobs_cancelled_total counter")
     lines.append(f"aegisai_jobs_cancelled_total {snap.get('jobs_cancelled_total', 0)}")
+    lines.append(
+        "# HELP aegisai_http_429_rate_limited_total "
+        "Rejected /v1 requests (rate limiter)."
+    )
+    lines.append("# TYPE aegisai_http_429_rate_limited_total counter")
+    rl = snap.get("http_429_rate_limited_total", 0)
+    lines.append(f"aegisai_http_429_rate_limited_total {rl}")
     for pipe, d in snap.get("by_pipeline", {}).items():
         safe = pipe.replace("\\", "_").replace('"', "_")
         lines.append(

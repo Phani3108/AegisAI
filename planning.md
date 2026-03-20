@@ -259,4 +259,4 @@ Phased approach to avoid overbuilding:
 
 ---
 
-*Last updated: Phase 7 (K8s /live, /ready, Helm probes).*
+*Last updated: Phase 8 (optional /v1 rate limit, Prometheus counter).*

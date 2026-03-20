@@ -14,9 +14,11 @@ def test_metrics_json_and_prometheus_empty() -> None:
         j = client.get("/v1/metrics").json()
         assert j["jobs_completed_total"] == 0
         assert j.get("jobs_cancelled_total", 0) == 0
+        assert j.get("http_429_rate_limited_total", 0) == 0
         p = client.get("/v1/metrics", params={"format": "prometheus"}).text
         assert "aegisai_jobs_completed_total 0" in p
         assert "aegisai_jobs_cancelled_total 0" in p
+        assert "aegisai_http_429_rate_limited_total 0" in p
         p2 = client.get("/metrics").text
         assert "aegisai_jobs_completed_total 0" in p2
 

@@ -60,6 +60,10 @@ Append-only chronological record. Each entry: **date**, **user prompt (summary)*
 - **Actions:** Added `tests/test_e2e_deep.py` (Chroma+RAG job flow + mocked image job), `scripts/verify_e2e.sh`, dev deps `pytest-cov`, `build`; ran **ruff**, **compileall**, **15 pytest** tests, **`python -m build`** (sdist+wheel OK). Added **MIT** `LICENSE`, README repo link + verify script section. Initialized git in project dir, `main` branch, pushed to `origin` (https://github.com/Phani3108/AegisAI).
 - **Files:** `tests/test_e2e_deep.py`, `scripts/verify_e2e.sh`, `pyproject.toml`, `LICENSE`, `README.md`, `tasks.md`, `LOG.md`
 
+### Entry 18 — Phase 8: /v1 rate limit + metric
+
+- **Actions:** **`AEGISAI_RATE_LIMIT_PER_MINUTE`**; **`RateLimitMiddleware`** (per-IP deque, 60s window); **`record_rate_limited`** + Prometheus; **`reset_for_tests`** in conftest; [`tests/test_phase8_rate_limit.py`](tests/test_phase8_rate_limit.py); README/tasks. **`qa_verify.sh`:** 49 passed.
+
 ### Entry 17 — Phase 7: Kubernetes /live, /ready, Helm probes
 
 - **Prompt summary:** Next phases; deep QA per phase; push to GitHub.

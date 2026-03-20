@@ -50,6 +50,7 @@
 | **5** | Packaging | **Dockerfile**, **docker-compose** (Ollama + app), **`GET /version`** |
 | **6** | Ops polish | **`AEGISAI_LOG_JSON`**, WebSocket API-key parity (header / query), **Docker build in CI** |
 | **7** | K8s probes | **`GET /live`**, **`GET /ready`** (Ollama + Chroma writable), Helm **`livenessProbe` / `readinessProbe`**, shared [`readiness`](src/aegisai/services/readiness.py) |
+| **8** | T1 throttling | **`AEGISAI_RATE_LIMIT_PER_MINUTE`** — per-client-IP rolling cap on **`/v1/*`** (**429** + `Retry-After`), counter **`aegisai_http_429_rate_limited_total`** (in-process; one replica) |
 
 Scene-based video sampling, DLP prototype, and Helm chart are in-tree; see [tasks.md](tasks.md).
 
@@ -250,6 +251,7 @@ All settings use the **`AEGISAI_`** prefix (see [.env.example](.env.example)).
 | `AEGISAI_DLP_ENABLED` | `false` | Regex scan on hybrid job text inputs |
 | `AEGISAI_DLP_BLOCK_HYBRID` | `true` | **400** if patterns match on hybrid |
 | `AEGISAI_LOG_JSON` | `false` | One JSON object per log line on **stderr** (aggregation-friendly) |
+| `AEGISAI_RATE_LIMIT_PER_MINUTE` | _(unset)_ | If set, max **`/v1/*`** requests per client IP per rolling **60s** (**429**); in-process only |
 
 ---
 
@@ -266,7 +268,7 @@ All settings use the **`AEGISAI_`** prefix (see [.env.example](.env.example)).
 
 - **`X-Request-ID`** on responses.
 - **Structured logs** — set **`AEGISAI_LOG_JSON=true`** for newline-delimited JSON on stderr (set at process start; useful in Kubernetes / Loki / Datadog).
-- **Prometheus** — `GET /metrics` and `GET /v1/metrics?format=prometheus` (completions, failures, **cancellations**, per-pipeline, latency average, in-flight gauge).
+- **Prometheus** — `GET /metrics` and `GET /v1/metrics?format=prometheus` (completions, failures, **cancellations**, **rate-limit rejects**, per-pipeline, latency average, in-flight gauge).
 - **Optional OTEL** — `aegisai[otel]` and `AEGISAI_OTEL_ENABLED=true`.
 
 ---
