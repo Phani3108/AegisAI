@@ -64,6 +64,11 @@ Append-only chronological record. Each entry: **date**, **user prompt (summary)*
 
 - **Actions:** GitHub Actions **CI badge**; **Phases 0–9** + extras summary; Phase 8/9 table wording; **`pip install -e ".[dev,otel]"`** / **`redis`** hints; smoke checks use **`GET /ready`** (document **`/v1/ready`** + API key).
 
+### Entry 21 — Phase 10: frontend demo polish (white UI + richer controls)
+
+- **Prompt summary:** Continue to next phase, ensure frontend has white background and improved elements, run thorough QA, then push.
+- **Actions:** Rebuilt [`examples/demo-ui/index.html`](examples/demo-ui/index.html) with white background card layout, improved typography/buttons, readiness status pill, policy/readiness actions, sample+beautify JSON, create/refresh job flow, auto-refresh polling (2s/5s/10s), and response copy/clear with timestamps. Updated frontend docs and roadmap (`README`, `tasks`, `planning`).
+
 ### Entry 19 — Phase 9: OpenAPI polish, integrator kit, demo UI, optional Redis
 
 - **Prompt summary:** Implement attached plan (planning §9, OpenAPI, .http + SDK doc, demo UI, Redis idempotency/rate limit).

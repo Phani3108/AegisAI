@@ -85,6 +85,12 @@
 - [x] **Demo UI** — [`examples/demo-ui/`](examples/demo-ui/) (static `index.html` + README)
 - [x] **Redis optional** — [`AEGISAI_REDIS_URL`](src/aegisai/config.py), [`redis_util`](src/aegisai/services/redis_util.py), [`job_store`](src/aegisai/services/job_store.py) idempotency + [`rate_limit`](src/aegisai/middleware/rate_limit.py); extra **`aegisai[redis]`**; tests [`tests/test_redis_backends.py`](tests/test_redis_backends.py)
 
+## Phase 10 — Frontend polish (demo UI)
+
+- [x] White background + improved visual hierarchy ([`examples/demo-ui/index.html`](examples/demo-ui/index.html))
+- [x] Better controls: readiness check, beautify JSON, copy/clear response, auto-refresh polling
+- [x] UI docs refreshed ([`examples/demo-ui/README.md`](examples/demo-ui/README.md), [`README.md`](README.md))
+
 ---
 
 ## Backlog / ideas (not committed)

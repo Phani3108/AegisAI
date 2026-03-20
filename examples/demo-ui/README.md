@@ -1,6 +1,7 @@
 # AegisAI demo UI (static)
 
 Minimal **single-page** helper to try the API from a browser without curl.
+Phase 10 refresh adds a clean white theme and better operator-focused controls.
 
 ## How to run
 
@@ -15,6 +16,19 @@ Minimal **single-page** helper to try the API from a browser without curl.
    Then open `http://127.0.0.1:8765/`.
 
 3. Set **API base URL** (default `http://127.0.0.1:8000`) and optional **API key** to match your server.
-4. Use **Load policy** to view routing rules, **Create sample job** for a placeholder body (edit **`file://` URI** to a real path on the **API server**), then **Refresh job** once you have a job ID.
+4. Use:
+   - **Check /ready** for backend readiness
+   - **Load /v1/policy** for routing visibility
+   - **Create Job** and **Refresh Job**
+   - **Start Auto Refresh** to poll job status every N seconds
+5. You can copy response JSON, clear output, and beautify request JSON from the built-in controls.
+
+## Included UX elements
+
+- White-background card layout for readability
+- Connection status pill (ready/not-ready)
+- Sample request + beautify
+- Job polling controls (off/2s/5s/10s)
+- Response copy/clear actions and request timestamp metadata
 
 This is a **debug / demo** surface, not a production console. For full API detail use `/docs`.

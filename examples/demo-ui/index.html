@@ -6,118 +6,459 @@
   <title>AegisAI — demo console</title>
   <style>
     :root {
-      font-family: system-ui, sans-serif;
-      background: #0f1419;
-      color: #e6edf3;
-      line-height: 1.5;
+      font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+      color: #111827;
+      background: #ffffff;
+      line-height: 1.45;
     }
-    body { max-width: 52rem; margin: 2rem auto; padding: 0 1rem; }
-    h1 { font-size: 1.35rem; font-weight: 600; }
-    label { display: block; font-size: 0.8rem; color: #8b949e; margin-top: 0.75rem; }
-    input, textarea, button {
-      width: 100%; box-sizing: border-box; margin-top: 0.25rem;
-      padding: 0.5rem 0.6rem; border-radius: 6px; border: 1px solid #30363d;
-      background: #161b22; color: #e6edf3; font-size: 0.9rem;
+    * {
+      box-sizing: border-box;
     }
-    textarea { min-height: 8rem; font-family: ui-monospace, monospace; font-size: 0.8rem; }
+    body {
+      margin: 0;
+      background: #f9fafb;
+      color: #111827;
+    }
+    .page {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 2rem 1rem 3rem;
+    }
+    .hero {
+      background: #ffffff;
+      border: 1px solid #e5e7eb;
+      border-radius: 14px;
+      padding: 1rem 1.25rem;
+      box-shadow: 0 1px 2px rgba(17, 24, 39, 0.05);
+    }
+    h1 {
+      margin: 0;
+      font-size: 1.4rem;
+      font-weight: 700;
+    }
+    .sub {
+      margin: 0.45rem 0 0;
+      color: #4b5563;
+      font-size: 0.9rem;
+    }
+    .status-row {
+      margin-top: 0.8rem;
+      display: flex;
+      gap: 0.55rem;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .pill {
+      border: 1px solid #d1d5db;
+      border-radius: 999px;
+      padding: 0.22rem 0.55rem;
+      font-size: 0.76rem;
+      background: #ffffff;
+      color: #1f2937;
+    }
+    .pill.good {
+      border-color: #86efac;
+      background: #f0fdf4;
+      color: #166534;
+    }
+    .layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+    .card {
+      background: #ffffff;
+      border: 1px solid #e5e7eb;
+      border-radius: 14px;
+      padding: 1rem;
+      box-shadow: 0 1px 2px rgba(17, 24, 39, 0.05);
+    }
+    .card h2 {
+      margin: 0 0 0.75rem;
+      font-size: 1rem;
+      font-weight: 650;
+    }
+    label {
+      display: block;
+      font-size: 0.78rem;
+      color: #6b7280;
+      margin-top: 0.65rem;
+    }
+    input,
+    textarea,
+    select {
+      width: 100%;
+      margin-top: 0.3rem;
+      border: 1px solid #d1d5db;
+      border-radius: 10px;
+      background: #ffffff;
+      color: #111827;
+      padding: 0.55rem 0.65rem;
+      font-size: 0.9rem;
+    }
+    input:focus,
+    textarea:focus,
+    select:focus {
+      outline: 2px solid #93c5fd;
+      border-color: #60a5fa;
+    }
+    textarea {
+      min-height: 220px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 0.8rem;
+      resize: vertical;
+      line-height: 1.35;
+    }
+    .row {
+      display: flex;
+      gap: 0.7rem;
+      flex-wrap: wrap;
+      align-items: end;
+    }
+    .row > .col {
+      flex: 1;
+      min-width: 180px;
+    }
+    .btns {
+      margin-top: 0.85rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
     button {
-      width: auto; cursor: pointer; margin-top: 0.75rem; margin-right: 0.5rem;
-      background: #238636; border-color: #2ea043; font-weight: 500;
+      border: 1px solid #d1d5db;
+      background: #ffffff;
+      color: #111827;
+      border-radius: 10px;
+      font-size: 0.84rem;
+      font-weight: 600;
+      padding: 0.48rem 0.72rem;
+      cursor: pointer;
     }
-    button.secondary { background: #21262d; border-color: #30363d; }
+    button.primary {
+      background: #1d4ed8;
+      color: #ffffff;
+      border-color: #1d4ed8;
+    }
+    button.good {
+      background: #16a34a;
+      color: #ffffff;
+      border-color: #16a34a;
+    }
+    button.warn {
+      background: #f59e0b;
+      color: #111827;
+      border-color: #f59e0b;
+    }
+    button:disabled {
+      opacity: 0.58;
+      cursor: not-allowed;
+    }
+    .mini {
+      margin-top: 0.7rem;
+      font-size: 0.78rem;
+      color: #6b7280;
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    .response-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.8rem;
+      margin-bottom: 0.5rem;
+    }
+    .response-head h2 {
+      margin: 0;
+    }
     pre {
-      background: #161b22; border: 1px solid #30363d; padding: 0.75rem; border-radius: 6px;
-      overflow: auto; font-size: 0.78rem; white-space: pre-wrap; word-break: break-word;
+      margin: 0;
+      border: 1px solid #e5e7eb;
+      background: #f8fafc;
+      border-radius: 10px;
+      padding: 0.75rem;
+      min-height: 370px;
+      overflow: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
+      font-size: 0.8rem;
+      line-height: 1.35;
     }
-    .row { display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: flex-end; }
-    .row > div { flex: 1; min-width: 10rem; }
-    .hint { font-size: 0.8rem; color: #8b949e; margin-top: 1rem; }
+    .muted {
+      color: #6b7280;
+    }
+    .hint {
+      margin-top: 0.7rem;
+      color: #6b7280;
+      font-size: 0.8rem;
+    }
+    @media (max-width: 930px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+    }
   </style>
 </head>
 <body>
-  <h1>AegisAI demo console</h1>
-  <p class="hint">Static page — set base URL to your API. Edit job JSON so <code>file://</code> paths exist on the <strong>server</strong>.</p>
+  <div class="page">
+    <section class="hero">
+      <h1>AegisAI demo console</h1>
+      <p class="sub">
+        Clean debug UI for policy checks, job creation, and status refresh. Use real <code>file://</code> paths reachable by the API host.
+      </p>
+      <div class="status-row">
+        <span class="pill">Phase 10 UI polish</span>
+        <span class="pill good">White background</span>
+        <span class="pill">API-first flow</span>
+        <span id="connPill" class="pill">Connection unknown</span>
+      </div>
+    </section>
 
-  <div class="row">
-    <div>
-      <label for="base">API base URL</label>
-      <input id="base" type="text" value="http://127.0.0.1:8000" autocomplete="off" />
-    </div>
-    <div>
-      <label for="apiKey">API key (optional)</label>
-      <input id="apiKey" type="password" placeholder="Bearer / X-API-Key" autocomplete="off" />
+    <div class="layout">
+      <section class="card">
+        <h2>Connection & Request Builder</h2>
+
+        <div class="row">
+          <div class="col">
+            <label for="base">API base URL</label>
+            <input id="base" type="text" value="http://127.0.0.1:8000" autocomplete="off" />
+          </div>
+          <div class="col">
+            <label for="apiKey">API key (optional)</label>
+            <input id="apiKey" type="password" placeholder="Bearer / X-API-Key" autocomplete="off" />
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col">
+            <label for="jobId">Job ID</label>
+            <input id="jobId" type="text" placeholder="auto-filled after create" />
+          </div>
+          <div class="col">
+            <label for="pollSec">Auto refresh (seconds)</label>
+            <select id="pollSec">
+              <option value="0">Off</option>
+              <option value="2">2s</option>
+              <option value="5" selected>5s</option>
+              <option value="10">10s</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="btns">
+          <button id="btnCheck" type="button">Check /ready</button>
+          <button id="btnPolicy" type="button">Load /v1/policy</button>
+          <button id="btnSample" type="button">Insert sample JSON</button>
+          <button id="btnBeautify" type="button">Beautify JSON</button>
+        </div>
+
+        <label for="body">Request body (POST /v1/jobs)</label>
+        <textarea id="body"></textarea>
+
+        <div class="btns">
+          <button id="btnCreate" class="primary" type="button">Create Job</button>
+          <button id="btnGet" type="button">Refresh Job</button>
+          <button id="btnPoll" class="good" type="button">Start Auto Refresh</button>
+          <button id="btnStop" class="warn" type="button">Stop Auto Refresh</button>
+        </div>
+
+        <p class="hint">
+          Tip: set <code>AEGISAI_API_KEY</code> server-side? Add the key above and the console sends <code>Authorization: Bearer ...</code>.
+        </p>
+      </section>
+
+      <section class="card">
+        <div class="response-head">
+          <h2>Response Viewer</h2>
+          <div class="btns" style="margin-top:0">
+            <button id="btnCopy" type="button">Copy JSON</button>
+            <button id="btnClear" type="button">Clear</button>
+          </div>
+        </div>
+        <pre id="out">(none)</pre>
+        <div class="mini">
+          <span id="lastReq" class="muted">Last request: none</span>
+          <span id="lastAt" class="muted">Updated: never</span>
+        </div>
+      </section>
     </div>
   </div>
-
-  <label for="jobId">Job ID</label>
-  <input id="jobId" type="text" placeholder="paste after create" />
-
-  <div>
-    <button type="button" id="btnPolicy">Load policy</button>
-    <button type="button" id="btnSample" class="secondary">Fill sample job JSON</button>
-    <button type="button" id="btnCreate">POST /v1/jobs</button>
-    <button type="button" id="btnGet" class="secondary">GET job</button>
-  </div>
-
-  <label for="body">Request body (job create)</label>
-  <textarea id="body"></textarea>
-
-  <label>Response</label>
-  <pre id="out">(none)</pre>
 
   <script>
     const $ = (id) => document.getElementById(id);
-    const base = () => $("base").value.replace(/\/$/, "");
+    const base = () => $("base").value.trim().replace(/\/$/, "");
+    let pollTimer = null;
+
+    const nowStamp = () => new Date().toLocaleTimeString();
+
+    const markMeta = (label) => {
+      $("lastReq").textContent = "Last request: " + label;
+      $("lastAt").textContent = "Updated: " + nowStamp();
+    };
+
     const headers = () => {
       const h = { "Content-Type": "application/json" };
-      const k = $("apiKey").value.trim();
-      if (k) h["Authorization"] = "Bearer " + k;
+      const key = $("apiKey").value.trim();
+      if (key) h.Authorization = "Bearer " + key;
       return h;
     };
-    const show = (obj) => { $("out").textContent = typeof obj === "string" ? obj : JSON.stringify(obj, null, 2); };
+
+    const show = (obj, label) => {
+      $("out").textContent = typeof obj === "string" ? obj : JSON.stringify(obj, null, 2);
+      if (label) markMeta(label);
+    };
+
+    const setConn = (text, good = false) => {
+      const el = $("connPill");
+      el.textContent = text;
+      el.className = good ? "pill good" : "pill";
+    };
+
+    const parseJsonSafe = (raw) => {
+      try {
+        return JSON.parse(raw);
+      } catch {
+        return null;
+      }
+    };
+
+    const request = async (path, options, label) => {
+      const resp = await fetch(base() + path, options);
+      const text = await resp.text();
+      const parsed = parseJsonSafe(text);
+      if (!resp.ok) {
+        show(
+          {
+            status: resp.status,
+            status_text: resp.statusText,
+            error: parsed || text,
+          },
+          label
+        );
+        return null;
+      }
+      show(parsed || text, label);
+      return parsed || text;
+    };
+
+    const sampleBody = () => ({
+      inputs: [
+        { type: "image_ref", uri: "file:///absolute/path/on/server/image.png" },
+        { type: "text", text: "Summarize what is visible in 2 concise bullet points." }
+      ],
+      sensitivity_label: "internal",
+      mode: "local_only"
+    });
+
+    const getJob = async () => {
+      const id = $("jobId").value.trim();
+      if (!id) {
+        show("Set job ID first.", "GET /v1/jobs/{id}");
+        return null;
+      }
+      return request(
+        "/v1/jobs/" + encodeURIComponent(id),
+        { headers: headers() },
+        "GET /v1/jobs/{id}"
+      );
+    };
+
+    const stopPolling = () => {
+      if (pollTimer) {
+        clearInterval(pollTimer);
+        pollTimer = null;
+      }
+    };
+
+    const startPolling = () => {
+      stopPolling();
+      const sec = Number($("pollSec").value || "0");
+      if (!sec || sec < 1) {
+        show("Auto refresh is off. Pick 2s/5s/10s first.", "Auto refresh");
+        return;
+      }
+      pollTimer = setInterval(() => {
+        getJob();
+      }, sec * 1000);
+      show("Auto refresh started (" + sec + "s).", "Auto refresh");
+    };
 
     $("btnSample").onclick = () => {
-      $("body").value = JSON.stringify({
-        inputs: [
-          { type: "image_ref", uri: "file:///absolute/path/on/server/image.png" },
-          { type: "text", text: "What do you see?" }
-        ],
-        sensitivity_label: "internal",
-        mode: "local_only"
-      }, null, 2);
+      $("body").value = JSON.stringify(sampleBody(), null, 2);
+      show("Sample payload inserted.", "Insert sample");
+    };
+
+    $("btnBeautify").onclick = () => {
+      const parsed = parseJsonSafe($("body").value);
+      if (!parsed) {
+        show("Body is not valid JSON.", "Beautify JSON");
+        return;
+      }
+      $("body").value = JSON.stringify(parsed, null, 2);
+      show("JSON formatted.", "Beautify JSON");
+    };
+
+    $("btnCheck").onclick = async () => {
+      const out = await request("/ready", { headers: headers() }, "GET /ready");
+      setConn(out && out.status === "ready" ? "Ready" : "Not ready", !!(out && out.status === "ready"));
     };
 
     $("btnPolicy").onclick = async () => {
-      try {
-        const r = await fetch(base() + "/v1/policy", { headers: headers() });
-        const t = await r.text();
-        show(r.ok ? JSON.parse(t) : r.status + " " + t);
-      } catch (e) { show(String(e)); }
+      await request("/v1/policy", { headers: headers() }, "GET /v1/policy");
     };
 
     $("btnCreate").onclick = async () => {
-      try {
-        const r = await fetch(base() + "/v1/jobs", {
-          method: "POST",
-          headers: headers(),
-          body: $("body").value
-        });
-        const t = await r.text();
-        let j; try { j = JSON.parse(t); } catch { show(t); return; }
-        show(j);
-        if (j.job_id) $("jobId").value = j.job_id;
-      } catch (e) { show(String(e)); }
+      const payload = parseJsonSafe($("body").value);
+      if (!payload) {
+        show("Request body must be valid JSON.", "POST /v1/jobs");
+        return;
+      }
+      const out = await request(
+        "/v1/jobs",
+        { method: "POST", headers: headers(), body: JSON.stringify(payload) },
+        "POST /v1/jobs"
+      );
+      if (out && out.job_id) {
+        $("jobId").value = out.job_id;
+      }
     };
 
     $("btnGet").onclick = async () => {
-      const id = $("jobId").value.trim();
-      if (!id) { show("Set job ID first"); return; }
-      try {
-        const r = await fetch(base() + "/v1/jobs/" + encodeURIComponent(id), { headers: headers() });
-        const t = await r.text();
-        try { show(JSON.parse(t)); } catch { show(t); }
-      } catch (e) { show(String(e)); }
+      await getJob();
     };
+
+    $("btnPoll").onclick = () => {
+      startPolling();
+    };
+
+    $("btnStop").onclick = () => {
+      stopPolling();
+      show("Auto refresh stopped.", "Auto refresh");
+    };
+
+    $("btnCopy").onclick = async () => {
+      try {
+        await navigator.clipboard.writeText($("out").textContent);
+        show("Response copied to clipboard.", "Copy JSON");
+      } catch {
+        show("Copy failed (browser permission denied).", "Copy JSON");
+      }
+    };
+
+    $("btnClear").onclick = () => {
+      $("out").textContent = "(none)";
+      $("lastReq").textContent = "Last request: none";
+      $("lastAt").textContent = "Updated: never";
+    };
+
+    window.addEventListener("beforeunload", () => {
+      stopPolling();
+    });
+
+    $("body").value = JSON.stringify(sampleBody(), null, 2);
   </script>
 </body>
 </html>

@@ -7,7 +7,7 @@
 **Repository:** [github.com/Phani3108/AegisAI](https://github.com/Phani3108/AegisAI)  
 **Docs:** [planning.md](planning.md) (architecture & tiers) · [tasks.md](tasks.md) (checklist) · [LOG.md](LOG.md) (changelog) · [docs/integrators/SDK.md](docs/integrators/SDK.md) (OpenAPI / clients)
 
-**Status:** Phases **0–9** shipped (see roadmap table below). CI runs **Ruff**, **pytest** (3.11 + 3.12), package **build**, and **Docker image build**. Optional extras: **`aegisai[otel]`**, **`aegisai[redis]`** (shared idempotency + rate limits across replicas).
+**Status:** Phases **0–10** shipped (see roadmap table below). CI runs **Ruff**, **pytest** (3.11 + 3.12), package **build**, and **Docker image build**. Optional extras: **`aegisai[otel]`**, **`aegisai[redis]`** (shared idempotency + rate limits across replicas).
 
 ---
 
@@ -52,7 +52,7 @@
 4. **Progress:** `GET /v1/jobs/{id}` or SSE `/v1/jobs/{id}/events` until terminal status.
 5. **Ops:** `GET /metrics` or `GET /v1/metrics?format=prometheus` for counters.
 
-Optional **browser demo:** [examples/demo-ui/](examples/demo-ui/) (static `index.html`; see its README for `python3 -m http.server`).
+Optional **browser demo:** [examples/demo-ui/](examples/demo-ui/) (Phase 10 polished UI with white background, status pills, and auto-refresh controls).
 
 ---
 
@@ -78,6 +78,7 @@ Optional **browser demo:** [examples/demo-ui/](examples/demo-ui/) (static `index
 | **7** | K8s probes | **`GET /live`**, **`GET /ready`** (Ollama + Chroma writable), Helm **`livenessProbe` / `readinessProbe`**, shared [`readiness`](src/aegisai/services/readiness.py) |
 | **8** | T1 throttling | **`AEGISAI_RATE_LIMIT_PER_MINUTE`** — rolling cap on **`/v1/*`** per client IP (**429** + `Retry-After`); counter **`aegisai_http_429_rate_limited_total`** (in-process by default) |
 | **9** | Integrator & scale | OpenAPI polish; **[examples/http/smoke.http](examples/http/smoke.http)**; optional **Redis** (**`AEGISAI_REDIS_URL`** + **`aegisai[redis]`**) for **Idempotency-Key** + rate limit across replicas; **[examples/demo-ui/](examples/demo-ui/)** |
+| **10** | Frontend polish | Demo UI refresh with **white background**, improved cards/buttons, readiness check, job auto-refresh, and response utilities |
 
 Scene-based video sampling, DLP prototype, and Helm chart are in-tree; see [tasks.md](tasks.md).
 
