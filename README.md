@@ -62,18 +62,23 @@ Optional **browser demo:** [examples/demo-ui/](examples/demo-ui/) (Phase 11 poli
 Simple carousel view (open one slide at a time):
 
 <details>
-  <summary>Slide 1/3 — Home</summary>
+  <summary>Slide 1/4 — Home</summary>
   <img src="docs/images/screenshots/demo-home.png" alt="AegisAI demo home screen" />
 </details>
 
 <details>
-  <summary>Slide 2/3 — Sample job request</summary>
+  <summary>Slide 2/4 — Sample job request</summary>
   <img src="docs/images/screenshots/demo-sample.png" alt="AegisAI demo with sample request body" />
 </details>
 
 <details>
-  <summary>Slide 3/3 — Auto-refresh state</summary>
+  <summary>Slide 3/4 — Auto-refresh state</summary>
   <img src="docs/images/screenshots/demo-polling.png" alt="AegisAI demo with polling enabled" />
+</details>
+
+<details>
+  <summary>Slide 4/4 — Frontend launch on port 7001</summary>
+  <img src="docs/images/screenshots/demo-launch-7001.png" alt="AegisAI frontend launch screen on port 7001" />
 </details>
 
 ---
