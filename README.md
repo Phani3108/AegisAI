@@ -3,7 +3,7 @@
 **Local-first multimodal API** — vision → LLM → RAG — with optional hybrid routing, DLP-style gates, Chroma persistence, metrics, and deployment sketches (Docker, Helm). Designed for an **enterprise privacy** posture: run inference next to your data; control what leaves the machine via policy.
 
 **Repository:** [github.com/Phani3108/AegisAI](https://github.com/Phani3108/AegisAI)  
-**Docs:** [planning.md](planning.md) (architecture & tiers) · [tasks.md](tasks.md) (checklist) · [LOG.md](LOG.md) (changelog-style log)
+**Docs:** [planning.md](planning.md) (architecture & tiers) · [tasks.md](tasks.md) (checklist) · [LOG.md](LOG.md) (changelog) · [docs/integrators/SDK.md](docs/integrators/SDK.md) (OpenAPI / clients)
 
 ---
 
@@ -16,6 +16,8 @@
 - [Quickstart: Docker Compose](#quickstart-docker-compose)
 - [Quickstart: local Python](#quickstart-local-python)
 - [Smoke checks & examples](#smoke-checks--examples)
+- [Five-minute path](#five-minute-path)
+- [Integrators (OpenAPI / clients)](#integrators-openapi--clients)
 - [HTTP API summary](#http-api-summary)
 - [Job request model](#job-request-model)
 - [Configuration (environment)](#configuration-environment)
@@ -38,6 +40,26 @@
 
 ---
 
+## Five-minute path
+
+1. **Compose:** `docker compose up --build` from the repo root; pull Ollama models (see [Quickstart: Docker Compose](#quickstart-docker-compose)).
+2. **Policy:** `curl -s http://127.0.0.1:8000/v1/policy | python -m json.tool` — confirm routing rules.
+3. **Job:** `POST /v1/jobs` with an `image_ref` + `text` question ([HTTP API summary](#http-api-summary) and [examples/http/smoke.http](examples/http/smoke.http)).
+4. **Progress:** `GET /v1/jobs/{id}` or SSE `/v1/jobs/{id}/events` until terminal status.
+5. **Ops:** `GET /metrics` or `GET /v1/metrics?format=prometheus` for counters.
+
+Optional **browser demo:** [examples/demo-ui/](examples/demo-ui/) (static `index.html`; see its README for `python3 -m http.server`).
+
+---
+
+## Integrators (OpenAPI / clients)
+
+- **Live schema:** `/openapi.json` · **Swagger UI:** `/docs`
+- **Copy-paste requests:** [examples/http/smoke.http](examples/http/smoke.http)
+- **Generating Python / TypeScript clients:** [docs/integrators/SDK.md](docs/integrators/SDK.md)
+
+---
+
 ## Capability roadmap (phases)
 
 | Phase | Focus | Highlights |
@@ -51,6 +73,7 @@
 | **6** | Ops polish | **`AEGISAI_LOG_JSON`**, WebSocket API-key parity (header / query), **Docker build in CI** |
 | **7** | K8s probes | **`GET /live`**, **`GET /ready`** (Ollama + Chroma writable), Helm **`livenessProbe` / `readinessProbe`**, shared [`readiness`](src/aegisai/services/readiness.py) |
 | **8** | T1 throttling | **`AEGISAI_RATE_LIMIT_PER_MINUTE`** — per-client-IP rolling cap on **`/v1/*`** (**429** + `Retry-After`), counter **`aegisai_http_429_rate_limited_total`** (in-process; one replica) |
+| **9** | Integrator & scale | OpenAPI tags + error schemas; **HTTP examples**; **Redis** optional for idempotency + rate limit (**`aegisai[redis]`**); static **demo UI** |
 
 Scene-based video sampling, DLP prototype, and Helm chart are in-tree; see [tasks.md](tasks.md).
 
@@ -251,7 +274,9 @@ All settings use the **`AEGISAI_`** prefix (see [.env.example](.env.example)).
 | `AEGISAI_DLP_ENABLED` | `false` | Regex scan on hybrid job text inputs |
 | `AEGISAI_DLP_BLOCK_HYBRID` | `true` | **400** if patterns match on hybrid |
 | `AEGISAI_LOG_JSON` | `false` | One JSON object per log line on **stderr** (aggregation-friendly) |
-| `AEGISAI_RATE_LIMIT_PER_MINUTE` | _(unset)_ | If set, max **`/v1/*`** requests per client IP per rolling **60s** (**429**); in-process only |
+| `AEGISAI_RATE_LIMIT_PER_MINUTE` | _(unset)_ | Max **`/v1/*`** requests per client IP per rolling **60s** (**429**); use in-process buckets, or **Redis** when **`AEGISAI_REDIS_URL`** is set (install **`aegisai[redis]`**) |
+| `AEGISAI_REDIS_URL` | _(unset)_ | Optional **`redis://…`** for shared **Idempotency-Key** + rate-limit windows across replicas |
+| `AEGISAI_IDEMPOTENCY_TTL_SECONDS` | `604800` | Redis TTL for idempotency keys (**7d** default) |
 
 ---
 
@@ -322,6 +347,9 @@ docker build -t aegisai:local .
 | `docs/fine_tune/` | Fine-tuning playbook |
 | `benchmarks/` | CLI benchmarks |
 | `deploy/helm/aegisai` | Kubernetes Helm chart |
+| [examples/http/](examples/http/) | REST Client / Bruno-style `.http` examples |
+| [examples/demo-ui/](examples/demo-ui/) | Static browser demo for jobs + policy |
+| [docs/integrators/](docs/integrators/) | OpenAPI client generation notes |
 | `tests/` | Pytest suite |
 | `scripts/qa_verify.sh` | Full QA gate |
 | `Dockerfile` / `docker-compose.yml` | Container deployment |

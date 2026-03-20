@@ -9,7 +9,12 @@ from aegisai.services import metrics
 router = APIRouter()
 
 
-@router.get("/metrics", response_model=None)
+@router.get(
+    "/metrics",
+    response_model=None,
+    summary="Application metrics (JSON or Prometheus)",
+    description="JSON by default; set **`format=prometheus`** for text exposition.",
+)
 async def metrics_endpoint(
     format: str | None = Query(default=None, description="Use `prometheus` for text exposition."),
 ) -> Response | dict[str, Any]:

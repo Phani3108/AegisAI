@@ -10,7 +10,9 @@ def reset_isolation() -> None:
     from aegisai.middleware.rate_limit import reset_for_tests as reset_rate_limit_for_tests
     from aegisai.services import job_cancel, job_store, metrics
     from aegisai.services.job_concurrency import reset_limiter_for_tests
+    from aegisai.services.redis_util import set_redis_client
 
+    set_redis_client(None)
     asyncio.run(metrics.reset_for_tests())
     asyncio.run(reset_rate_limit_for_tests())
     asyncio.run(job_store.reset_test_state())

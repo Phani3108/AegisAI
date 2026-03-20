@@ -4,7 +4,7 @@ from datetime import datetime
 from enum import StrEnum
 from typing import Any, Literal
 
-from pydantic import BaseModel, Field, field_validator, model_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 from aegisai.schemas.video import SamplingPolicy
 
@@ -32,6 +32,19 @@ class JobRequest(BaseModel):
     OpenAPI-aligned job creation body.
     See planning.md: Policy before inference; mode drives routing stub.
     """
+
+    model_config = ConfigDict(
+        json_schema_extra={
+            "example": {
+                "inputs": [
+                    {"type": "image_ref", "uri": "file:///data/sample.png"},
+                    {"type": "text", "text": "What is visible in this image?"},
+                ],
+                "sensitivity_label": "internal",
+                "mode": "local_only",
+            }
+        }
+    )
 
     inputs: list[JobInput] = Field(min_length=1)
     sensitivity_label: Literal["public", "internal", "confidential", "regulated"] = "internal"

@@ -6,6 +6,7 @@ import logging
 import chromadb
 from fastapi import APIRouter, HTTPException, Request
 
+from aegisai.api.openapi_extra import common_error_responses
 from aegisai.ollama.client import OllamaClient
 from aegisai.rag_store.ingest import upsert_documents
 from aegisai.rag_store.names import sanitize_collection_name
@@ -27,7 +28,11 @@ def _chroma(request: Request) -> chromadb.PersistentClient:
     return c
 
 
-@router.get("/collections")
+@router.get(
+    "/collections",
+    summary="List Chroma collections",
+    responses={**common_error_responses(401, 503)},
+)
 async def list_collections(request: Request) -> dict:
     chroma = _chroma(request)
 
@@ -39,7 +44,11 @@ async def list_collections(request: Request) -> dict:
     return {"collections": names}
 
 
-@router.post("/collections")
+@router.post(
+    "/collections",
+    summary="Create collection",
+    responses={**common_error_responses(401, 503)},
+)
 async def create_collection(body: CollectionCreate, request: Request) -> dict:
     chroma = _chroma(request)
     safe = sanitize_collection_name(body.name)
@@ -52,7 +61,12 @@ async def create_collection(body: CollectionCreate, request: Request) -> dict:
     return {"name": safe}
 
 
-@router.post("/collections/{name}/documents", response_model=IngestResponse)
+@router.post(
+    "/collections/{name}/documents",
+    response_model=IngestResponse,
+    summary="Ingest documents",
+    responses={**common_error_responses(401, 503)},
+)
 async def ingest_documents_route(
     name: str,
     body: DocumentBatch,
@@ -68,7 +82,11 @@ async def ingest_documents_route(
     return IngestResponse(chunks_added=n, collection=safe)
 
 
-@router.delete("/collections/{name}")
+@router.delete(
+    "/collections/{name}",
+    summary="Delete collection",
+    responses={**common_error_responses(401, 404, 503)},
+)
 async def delete_collection(name: str, request: Request) -> dict:
     chroma = _chroma(request)
     safe = sanitize_collection_name(name)

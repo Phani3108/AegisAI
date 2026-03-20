@@ -7,7 +7,11 @@ from aegisai.services import metrics
 router = APIRouter()
 
 
-@router.get("/metrics")
+@router.get(
+    "/metrics",
+    summary="Prometheus scrape endpoint",
+    description="Unauthenticated when no API key; standard `text/plain` exposition format.",
+)
 async def prometheus_metrics() -> Response:
     """Prometheus scrape endpoint (OpenMetrics-compatible text)."""
     snap = await metrics.snapshot()

@@ -250,13 +250,16 @@ Phased approach to avoid overbuilding:
 **Accepted**
 
 - HTTP control plane: **FastAPI** (see ADR 0001).
+- **Vector store for T0–T1:** **Chroma** (persistent client + `/v1/collections/*`; see [`tasks.md`](tasks.md) Phase 1+). Qdrant/Milvus/etc. remain future swaps behind a common retriever interface if needed.
+- **Hybrid mode:** **In scope at the API/policy layer** — `mode=hybrid` plus YAML routing (`force_local_only`, per-label rules) and optional DLP gate; actual “cloud burst” to non-local backends is an integration extension, not a separate v1 flag.
+- **Hardware baseline:** Documented as **operator choice** — defaults target a typical dev GPU/CPU stack (Ollama `llama3.2` + `llava` + `nomic-embed-text`); production should size VRAM and timeouts per environment (see README env tables).
 
-**Open**
+**Open / revisit later**
 
-- Primary vector store for T0–T1.
-- Whether hybrid mode is in scope for v1 or deferred.
-- Target hardware baseline (VRAM tier) for default model set.
+- SSO / multi-tenant namespaces (T2).
+- Primary ASR pipeline (Whisper-class) for video narrative path.
+- Formal model capability matrix row coverage in CI.
 
 ---
 
-*Last updated: Phase 8 (optional /v1 rate limit, Prometheus counter).*
+*Last updated: Phase 9 (integrator kit, OpenAPI polish, optional Redis, demo UI — see [tasks.md](tasks.md)).*

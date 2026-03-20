@@ -1,0 +1,48 @@
+# AegisAI — REST smoke examples (VS Code REST Client, IntelliJ HTTP Client, Bruno).
+# @base = root URL; set @apiKey when AEGISAI_API_KEY is set.
+
+@base = http://127.0.0.1:8000
+@apiKey =
+# @apiKey = your-secret
+
+### Health & probes
+GET {{base}}/health
+GET {{base}}/live
+GET {{base}}/ready
+
+### Version
+GET {{base}}/version
+
+### Policy (optional auth)
+GET {{base}}/v1/policy
+Authorization: Bearer {{apiKey}}
+
+### Sync chat
+POST {{base}}/v1/query
+Content-Type: application/json
+Authorization: Bearer {{apiKey}}
+
+{
+  "model": "llama3.2",
+  "messages": [{ "role": "user", "content": "Ping — reply with OK." }]
+}
+
+### Create job (replace file URI with a real path on the API host)
+POST {{base}}/v1/jobs
+Content-Type: application/json
+Authorization: Bearer {{apiKey}}
+Idempotency-Key: smoke-demo-1
+
+{
+  "inputs": [
+    { "type": "image_ref", "uri": "file:///absolute/path/to/image.png" },
+    { "type": "text", "text": "Describe the image in one sentence." }
+  ],
+  "sensitivity_label": "internal",
+  "mode": "local_only"
+}
+
+### Metrics
+GET {{base}}/metrics
+GET {{base}}/v1/metrics
+Authorization: Bearer {{apiKey}}

@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AegisAI — demo console</title>
+  <style>
+    :root {
+      font-family: system-ui, sans-serif;
+      background: #0f1419;
+      color: #e6edf3;
+      line-height: 1.5;
+    }
+    body { max-width: 52rem; margin: 2rem auto; padding: 0 1rem; }
+    h1 { font-size: 1.35rem; font-weight: 600; }
+    label { display: block; font-size: 0.8rem; color: #8b949e; margin-top: 0.75rem; }
+    input, textarea, button {
+      width: 100%; box-sizing: border-box; margin-top: 0.25rem;
+      padding: 0.5rem 0.6rem; border-radius: 6px; border: 1px solid #30363d;
+      background: #161b22; color: #e6edf3; font-size: 0.9rem;
+    }
+    textarea { min-height: 8rem; font-family: ui-monospace, monospace; font-size: 0.8rem; }
+    button {
+      width: auto; cursor: pointer; margin-top: 0.75rem; margin-right: 0.5rem;
+      background: #238636; border-color: #2ea043; font-weight: 500;
+    }
+    button.secondary { background: #21262d; border-color: #30363d; }
+    pre {
+      background: #161b22; border: 1px solid #30363d; padding: 0.75rem; border-radius: 6px;
+      overflow: auto; font-size: 0.78rem; white-space: pre-wrap; word-break: break-word;
+    }
+    .row { display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: flex-end; }
+    .row > div { flex: 1; min-width: 10rem; }
+    .hint { font-size: 0.8rem; color: #8b949e; margin-top: 1rem; }
+  </style>
+</head>
+<body>
+  <h1>AegisAI demo console</h1>
+  <p class="hint">Static page — set base URL to your API. Edit job JSON so <code>file://</code> paths exist on the <strong>server</strong>.</p>
+
+  <div class="row">
+    <div>
+      <label for="base">API base URL</label>
+      <input id="base" type="text" value="http://127.0.0.1:8000" autocomplete="off" />
+    </div>
+    <div>
+      <label for="apiKey">API key (optional)</label>
+      <input id="apiKey" type="password" placeholder="Bearer / X-API-Key" autocomplete="off" />
+    </div>
+  </div>
+
+  <label for="jobId">Job ID</label>
+  <input id="jobId" type="text" placeholder="paste after create" />
+
+  <div>
+    <button type="button" id="btnPolicy">Load policy</button>
+    <button type="button" id="btnSample" class="secondary">Fill sample job JSON</button>
+    <button type="button" id="btnCreate">POST /v1/jobs</button>
+    <button type="button" id="btnGet" class="secondary">GET job</button>
+  </div>
+
+  <label for="body">Request body (job create)</label>
+  <textarea id="body"></textarea>
+
+  <label>Response</label>
+  <pre id="out">(none)</pre>
+
+  <script>
+    const $ = (id) => document.getElementById(id);
+    const base = () => $("base").value.replace(/\/$/, "");
+    const headers = () => {
+      const h = { "Content-Type": "application/json" };
+      const k = $("apiKey").value.trim();
+      if (k) h["Authorization"] = "Bearer " + k;
+      return h;
+    };
+    const show = (obj) => { $("out").textContent = typeof obj === "string" ? obj : JSON.stringify(obj, null, 2); };
+
+    $("btnSample").onclick = () => {
+      $("body").value = JSON.stringify({
+        inputs: [
+          { type: "image_ref", uri: "file:///absolute/path/on/server/image.png" },
+          { type: "text", text: "What do you see?" }
+        ],
+        sensitivity_label: "internal",
+        mode: "local_only"
+      }, null, 2);
+    };
+
+    $("btnPolicy").onclick = async () => {
+      try {
+        const r = await fetch(base() + "/v1/policy", { headers: headers() });
+        const t = await r.text();
+        show(r.ok ? JSON.parse(t) : r.status + " " + t);
+      } catch (e) { show(String(e)); }
+    };
+
+    $("btnCreate").onclick = async () => {
+      try {
+        const r = await fetch(base() + "/v1/jobs", {
+          method: "POST",
+          headers: headers(),
+          body: $("body").value
+        });
+        const t = await r.text();
+        let j; try { j = JSON.parse(t); } catch { show(t); return; }
+        show(j);
+        if (j.job_id) $("jobId").value = j.job_id;
+      } catch (e) { show(String(e)); }
+    };
+
+    $("btnGet").onclick = async () => {
+      const id = $("jobId").value.trim();
+      if (!id) { show("Set job ID first"); return; }
+      try {
+        const r = await fetch(base() + "/v1/jobs/" + encodeURIComponent(id), { headers: headers() });
+        const t = await r.text();
+        try { show(JSON.parse(t)); } catch { show(t); }
+      } catch (e) { show(String(e)); }
+    };
+  </script>
+</body>
+</html>

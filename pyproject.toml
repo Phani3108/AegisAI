@@ -25,6 +25,10 @@ dev = [
   "pytest-cov>=6.0.0",
   "ruff>=0.8.0",
   "build>=1.2.0",
+  "fakeredis>=2.23.0",
+]
+redis = [
+  "redis>=5.0.0",
 ]
 otel = [
   "opentelemetry-api>=1.28.0",

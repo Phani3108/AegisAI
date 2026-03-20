@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class StreamChatMessage(BaseModel):
@@ -15,6 +15,15 @@ class StreamChatMessage(BaseModel):
 
 
 class StreamChatRequest(BaseModel):
+    model_config = ConfigDict(
+        json_schema_extra={
+            "example": {
+                "model": "llama3.2",
+                "messages": [{"role": "user", "content": "Say hello in one sentence."}],
+            }
+        }
+    )
+
     model: str = Field(min_length=1)
     messages: list[StreamChatMessage] = Field(min_length=1)
 

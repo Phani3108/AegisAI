@@ -4,6 +4,7 @@ import chromadb
 import httpx
 from fastapi import FastAPI
 
+from aegisai.api.openapi_extra import OPENAPI_TAGS
 from aegisai.api.routes import (
     health,
     ops_metrics,
@@ -19,6 +20,7 @@ from aegisai.middleware.api_key import APIKeyMiddleware
 from aegisai.middleware.rate_limit import RateLimitMiddleware
 from aegisai.middleware.request_id import RequestIdMiddleware
 from aegisai.policy.loader import load_routing_policy
+from aegisai.services import redis_util
 from aegisai.services.job_concurrency import configure_limiter
 from aegisai.telemetry.otel import maybe_instrument
 
@@ -33,21 +35,40 @@ async def lifespan(app: FastAPI):
     policy = load_routing_policy(settings)
     settings.chroma_persist_dir.mkdir(parents=True, exist_ok=True)
     chroma_client = chromadb.PersistentClient(path=str(settings.chroma_persist_dir.resolve()))
-    async with httpx.AsyncClient() as client:
-        app.state.settings = settings
-        app.state.http = client
-        app.state.policy = policy
-        app.state.chroma = chroma_client
-        yield
+    rc = None
+    if settings.redis_url:
+        try:
+            import redis.asyncio as aioredis
+        except ImportError as e:
+            raise RuntimeError(
+                "AEGISAI_REDIS_URL is set; install aegisai[redis] (pip install 'aegisai[redis]')."
+            ) from e
+        rc = aioredis.from_url(settings.redis_url, decode_responses=True)
+        redis_util.set_redis_client(rc)
+    try:
+        async with httpx.AsyncClient() as client:
+            app.state.settings = settings
+            app.state.http = client
+            app.state.policy = policy
+            app.state.chroma = chroma_client
+            yield
+    finally:
+        if rc is not None:
+            await rc.aclose()
+            redis_util.set_redis_client(None)
 
 
 app = FastAPI(
     title="AegisAI",
-    description="Local multimodal stack — local-first inference and job API.",
+    description=(
+        "Local-first multimodal API — vision, video, RAG, policy-gated routing. "
+        "See **`README.md`** (five-minute path) and **`tasks.md`** for capabilities."
+    ),
     version="0.1.0",
     docs_url="/docs",
     redoc_url="/redoc",
     lifespan=lifespan,
+    openapi_tags=OPENAPI_TAGS,
 )
 
 app.add_middleware(RequestIdMiddleware)

@@ -77,6 +77,14 @@
 - [x] Middleware order: rate limit outer → API key → request ID ([`main.py`](src/aegisai/main.py))
 - [x] Tests [`tests/test_phase8_rate_limit.py`](tests/test_phase8_rate_limit.py)
 
+## Phase 9 — Integrator UX & Redis (plan refresh)
+
+- [x] **[planning.md](planning.md) §9** — Chroma + hybrid scope + open items clarified
+- [x] **OpenAPI** — tag blurbs, summaries, `common_error_responses`, request **examples** on [`JobRequest`](src/aegisai/schemas/jobs.py) / [`StreamChatRequest`](src/aegisai/schemas/stream.py); [`openapi_extra.py`](src/aegisai/api/openapi_extra.py)
+- [x] **Integrator kit** — [`examples/http/smoke.http`](examples/http/smoke.http), [`docs/integrators/SDK.md`](docs/integrators/SDK.md)
+- [x] **Demo UI** — [`examples/demo-ui/`](examples/demo-ui/) (static `index.html` + README)
+- [x] **Redis optional** — [`AEGISAI_REDIS_URL`](src/aegisai/config.py), [`redis_util`](src/aegisai/services/redis_util.py), [`job_store`](src/aegisai/services/job_store.py) idempotency + [`rate_limit`](src/aegisai/middleware/rate_limit.py); extra **`aegisai[redis]`**; tests [`tests/test_redis_backends.py`](tests/test_redis_backends.py)
+
 ---
 
 ## Backlog / ideas (not committed)

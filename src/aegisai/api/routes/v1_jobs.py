@@ -19,6 +19,7 @@ from fastapi import (
 )
 from fastapi.responses import StreamingResponse
 
+from aegisai.api.openapi_extra import common_error_responses
 from aegisai.config import Settings, get_settings
 from aegisai.dlp.scan import scan_request_text
 from aegisai.middleware.ws_auth import websocket_shared_secret_authorized
@@ -59,7 +60,12 @@ def _utcnow() -> datetime:
     return datetime.now(UTC)
 
 
-@router.get("/ready")
+@router.get(
+    "/ready",
+    summary="Readiness (authenticated)",
+    description="Same checks as `GET /ready` when `AEGISAI_API_KEY` is set.",
+    responses={**common_error_responses(401, 503)},
+)
 async def ready_v1(request: Request) -> dict[str, object]:
     """Same as GET /ready but under /v1 (requires API key when AEGISAI_API_KEY is set)."""
     settings = request.app.state.settings
@@ -70,14 +76,28 @@ async def ready_v1(request: Request) -> dict[str, object]:
         raise HTTPException(status_code=503, detail=f"not ready: {e!s}") from e
 
 
-@router.get("/policy")
+@router.get(
+    "/policy",
+    summary="Effective routing policy",
+    description="Active hybrid routing rules (YAML-backed; see `config/routing_policy.yaml`).",
+    responses={**common_error_responses(401)},
+)
 async def effective_routing_policy(request: Request) -> dict:
     """Active hybrid routing rules (YAML-backed; see config/routing_policy.yaml)."""
     policy: RoutingPolicy = request.app.state.policy
     return policy.public_view()
 
 
-@router.post("/jobs", response_model=JobCreateResponse)
+@router.post(
+    "/jobs",
+    response_model=JobCreateResponse,
+    summary="Create async job",
+    description=(
+        "Queue an image/video/RAG job. Optional **Idempotency-Key** for safe retries. "
+        "Set **AEGISAI_REDIS_URL** and install **aegisai[redis]** for multi-replica idempotency."
+    ),
+    responses={**common_error_responses(400, 401, 429, 500)},
+)
 async def create_job(
     request: Request,
     background_tasks: BackgroundTasks,
@@ -190,7 +210,12 @@ async def create_job(
     return JobCreateResponse(job_id=job_id, status=JobStatus.queued)
 
 
-@router.get("/jobs/{job_id}", response_model=JobStatusResponse)
+@router.get(
+    "/jobs/{job_id}",
+    response_model=JobStatusResponse,
+    summary="Get job status",
+    responses={**common_error_responses(401, 404)},
+)
 async def get_job(job_id: str) -> JobStatusResponse:
     job = await job_store.get_job(job_id)
     if job is None:
@@ -198,7 +223,11 @@ async def get_job(job_id: str) -> JobStatusResponse:
     return job
 
 
-@router.post("/jobs/{job_id}/cancel")
+@router.post(
+    "/jobs/{job_id}/cancel",
+    summary="Request job cancellation",
+    responses={**common_error_responses(401, 404)},
+)
 async def cancel_job(job_id: str) -> dict[str, Any]:
     """Request cooperative cancellation; the worker observes before heavy pipeline steps."""
     job = await job_store.get_job(job_id)
@@ -278,7 +307,12 @@ async def stream_job_events(job_id: str) -> StreamingResponse:
     return StreamingResponse(gen(), media_type="text/event-stream")
 
 
-@router.get("/jobs/{job_id}/audit", response_model=None)
+@router.get(
+    "/jobs/{job_id}/audit",
+    response_model=None,
+    summary="Export job audit events",
+    responses={**common_error_responses(401, 404)},
+)
 async def get_job_audit(
     job_id: str,
     format: str | None = Query(default=None, description="`ndjson` for newline-delimited JSON."),

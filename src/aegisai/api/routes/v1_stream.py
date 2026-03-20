@@ -5,13 +5,29 @@ import json
 from fastapi import APIRouter, Request
 from fastapi.responses import StreamingResponse
 
+from aegisai.api.openapi_extra import common_error_responses
 from aegisai.ollama.client import OllamaClient
 from aegisai.schemas.stream import StreamChatRequest
 
 router = APIRouter()
 
 
-@router.post("/stream/chat")
+@router.post(
+    "/stream/chat",
+    summary="SSE streaming chat",
+    description=(
+        "Proxies Ollama streaming chat as **text/event-stream** "
+        "(`data:` lines; stream ends with `[DONE]`)."
+    ),
+    responses={
+        **common_error_responses(401),
+        200: {
+            "description": "SSE stream",
+            "content": {"text/event-stream": {}},
+        },
+    },
+    response_class=StreamingResponse,
+)
 async def stream_chat(request: Request, body: StreamChatRequest) -> StreamingResponse:
     """SSE proxy of Ollama `/api/chat` with `stream: true` (NDJSON lines as `data:` events)."""
     settings = request.app.state.settings

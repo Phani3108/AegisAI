@@ -75,6 +75,19 @@ class Settings(BaseSettings):
             "If set, cap /v1/* requests per client IP per rolling 60s (429 Too Many Requests)."
         ),
     )
+    redis_url: str | None = Field(
+        default=None,
+        description=(
+            "Optional Redis URL (redis://…). When set with pip install 'aegisai[redis]', "
+            "Idempotency-Key mappings and per-IP rate limits are shared across replicas."
+        ),
+    )
+    idempotency_ttl_seconds: int = Field(
+        default=604800,
+        ge=60,
+        le=2_592_000,
+        description="TTL (seconds) for Redis Idempotency-Key entries (default 7 days).",
+    )
 
 
 def get_settings() -> Settings:
