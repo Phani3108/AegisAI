@@ -1,0 +1,27 @@
+# AegisAI + Ollama for local / lab use. Pull models after Ollama starts, e.g.:
+#   docker compose exec ollama ollama pull llama3.2 && docker compose exec ollama ollama pull llava
+services:
+  ollama:
+    image: ollama/ollama:latest
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    # For GPU hosts, add device reservations per https://docs.docker.com/compose/gpu-support/
+
+  aegisai:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      AEGISAI_OLLAMA_BASE_URL: http://ollama:11434
+      AEGISAI_CHROMA_PERSIST_DIR: /data/chroma
+      AEGISAI_ROUTING_POLICY_PATH: /app/config/routing_policy.yaml
+    volumes:
+      - chroma_data:/data/chroma
+    depends_on:
+      - ollama
+
+volumes:
+  ollama_data:
+  chroma_data:

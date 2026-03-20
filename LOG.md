@@ -60,6 +60,12 @@ Append-only chronological record. Each entry: **date**, **user prompt (summary)*
 - **Actions:** Added `tests/test_e2e_deep.py` (Chroma+RAG job flow + mocked image job), `scripts/verify_e2e.sh`, dev deps `pytest-cov`, `build`; ran **ruff**, **compileall**, **15 pytest** tests, **`python -m build`** (sdist+wheel OK). Added **MIT** `LICENSE`, README repo link + verify script section. Initialized git in project dir, `main` branch, pushed to `origin` (https://github.com/Phani3108/AegisAI).
 - **Files:** `tests/test_e2e_deep.py`, `scripts/verify_e2e.sh`, `pyproject.toml`, `LICENSE`, `README.md`, `tasks.md`, `LOG.md`
 
+### Entry 15 — Phase 5: Docker, Compose, /version, README overhaul
+
+- **Prompt summary:** Next phase + thorough QA + push; README updated properly.
+- **Actions:** **Dockerfile** (Python 3.12-slim, ffmpeg, pip install, `AEGISAI_*` defaults for chroma + policy path); **docker-compose.yml** (Ollama + AegisAI, volumes); **.dockerignore**; **`GET /version`** in [`health`](src/aegisai/api/routes/health.py); **API key** middleware exempts `/version`; **test_version_endpoint.py**. **README** rewritten: TOC, phase table, Docker quickstarts, consolidated API + env tables, security/observability/dev sections. **QA:** `qa_verify.sh` — **38 passed**; `docker build` not run (daemon unavailable on host). **tasks.md** Phase 5.
+- **Files:** `Dockerfile`, `docker-compose.yml`, `.dockerignore`, `src/aegisai/api/routes/health.py`, `src/aegisai/middleware/api_key.py`, `tests/test_version_endpoint.py`, `README.md`, `tasks.md`, `LOG.md`, `planning.md`
+
 ### Entry 14 — Phase 4: cancel, WebSocket events, metrics, QA script
 
 - **Prompt summary:** Next phases with thorough QA after completion and push to GitHub.

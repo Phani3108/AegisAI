@@ -48,6 +48,13 @@
 - [x] Prometheus **`jobs_cancelled_total`** + per-pipeline cancelled series
 - [x] **`scripts/qa_verify.sh`** + CI runs full QA (ruff, pytest -v, ci_gate, compileall, build)
 
+## Phase 5 — Packaging & discoverability
+
+- [x] **Dockerfile** + [.dockerignore](.dockerignore) (ffmpeg, Chroma volume, policy path)
+- [x] **docker-compose.yml** — `aegisai` + `ollama` with named volumes
+- [x] **`GET /version`** — package version; exempt from optional API key (with `/health`)
+- [x] **README** — full TOC, API table, env table, Docker + QA ([README.md](README.md))
+
 ---
 
 ## Backlog / ideas (not committed)

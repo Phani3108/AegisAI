@@ -259,4 +259,4 @@ Phased approach to avoid overbuilding:
 
 ---
 
-*Last updated: Phase 4 (job cancel + WebSocket progress + unified QA script in CI).*
+*Last updated: Phase 5 (Docker/Compose, /version, README as product doc).*

@@ -1,132 +1,113 @@
 # AegisAI
 
-Local multimodal pipeline (vision → LLM → RAG) with an enterprise privacy posture: **local-first**, optional hybrid routing, benchmarks, and observability. See [`planning.md`](planning.md) for architecture and expansion tiers.
+**Local-first multimodal API** — vision → LLM → RAG — with optional hybrid routing, DLP-style gates, Chroma persistence, metrics, and deployment sketches (Docker, Helm). Designed for an **enterprise privacy** posture: run inference next to your data; control what leaves the machine via policy.
 
-**Repository:** [github.com/Phani3108/AegisAI](https://github.com/Phani3108/AegisAI)
+**Repository:** [github.com/Phani3108/AegisAI](https://github.com/Phani3108/AegisAI)  
+**Docs:** [planning.md](planning.md) (architecture & tiers) · [tasks.md](tasks.md) (checklist) · [LOG.md](LOG.md) (changelog-style log)
+
+---
+
+## Table of contents
+
+- [Why AegisAI](#why-aegisai)
+- [Capability roadmap (phases)](#capability-roadmap-phases)
+- [Stack](#stack)
+- [Prerequisites](#prerequisites)
+- [Quickstart: Docker Compose](#quickstart-docker-compose)
+- [Quickstart: local Python](#quickstart-local-python)
+- [Smoke checks & examples](#smoke-checks--examples)
+- [HTTP API summary](#http-api-summary)
+- [Job request model](#job-request-model)
+- [Configuration (environment)](#configuration-environment)
+- [Security & privacy](#security--privacy)
+- [Observability](#observability)
+- [Benchmarks & Helm](#benchmarks--helm)
+- [Development & QA](#development--qa)
+- [Repository layout](#repository-layout)
+- [License](#license)
+
+---
+
+## Why AegisAI
+
+- **Multimodal jobs** — `image_ref`, `video_ref` (ffmpeg), `document_ref` (ephemeral RAG), `rag_collection` (Chroma).
+- **Policy-gated hybrid** — YAML routing; kill switch; optional DLP regex gate on hybrid requests.
+- **Operations** — idempotency, optional API key, concurrency caps (429), cancel + progress (SSE/WebSocket), Prometheus metrics.
+- **Bounded & streaming chat** — `POST /v1/query` (sync), `POST /v1/stream/chat` (SSE to Ollama).
+- **Structured answers** — `JobRequest.output_schema` → Ollama JSON mode + parsed object in `result.structured`.
+
+---
+
+## Capability roadmap (phases)
+
+| Phase | Focus | Highlights |
+|-------|--------|------------|
+| **0** | Core lab | FastAPI, async jobs, image/video/RAG pipelines, benchmarks v0 |
+| **1+** | Product API | Hybrid policy, Chroma + collections, SSE stream chat, OTEL optional |
+| **2** | T1 guardrails | `AEGISAI_API_KEY`, `MAX_CONCURRENT_JOBS`, `Idempotency-Key`, in-package benchmarks |
+| **3** | Real-time UX | `POST /v1/query`, job SSE `/v1/jobs/{id}/events`, `output_schema` → JSON |
+| **4** | Control | `POST .../cancel`, WebSocket `/v1/ws/jobs/{id}`, cancel metrics, **`scripts/qa_verify.sh`** in CI |
+| **5** | Packaging | **Dockerfile**, **docker-compose** (Ollama + app), **`GET /version`** |
+
+Scene-based video sampling, DLP prototype, and Helm chart are in-tree; see [tasks.md](tasks.md).
+
+---
 
 ## Stack
 
-- **Python 3.11+**, **FastAPI**, **Uvicorn**, **Pydantic Settings**
-- **Ollama** (local LLM + vision models) — required to run real jobs
+- **Python 3.11+**, **FastAPI**, **Uvicorn**, **Pydantic v2 / pydantic-settings**
+- **Ollama** — chat, vision, embeddings
+- **Chroma** — persistent vector store
+- **ffmpeg** — video keyframes / scene sampling (host or container)
 
-## Phase 0 pipelines
+---
 
-### `image_ref`
+## Prerequisites
 
-1. **Vision model** (`AEGISAI_VISION_MODEL`, default `llava`) describes the image.
-2. **Text LLM** (`AEGISAI_LLM_MODEL`, default `llama3.2`) answers using only that description.
+- **CPU/RAM** suitable for your chosen Ollama models.
+- **Ollama** installed on the host *or* run via **Docker Compose** below.
+- **ffmpeg** on `PATH` for video jobs (included in the container image).
 
-Optional `text` inputs supply the user question; otherwise a default summary prompt is used.
+---
 
-### `video_ref`
+## Quickstart: Docker Compose
 
-1. **ffmpeg** samples keyframe PNGs (see `video_sampling` on `JobRequest`: `max_frames`, optional `fps`).
-2. Optional **`video_sampling.scene_detection`** — sample at **scene cuts** (`select=gt(scene,…)` in ffmpeg) instead of fixed FPS; set **`scene_threshold`** (default `0.35`) to tune sensitivity.
-3. **Vision model** describes each sampled frame.
-4. **Text LLM** answers from the concatenated frame descriptions.
-
-Requires `ffmpeg` on `PATH`.
-
-### `document_ref` (minimal RAG)
-
-1. Plain text is read from the file (UTF-8, replace errors).
-2. **Embeddings** via Ollama `AEGISAI_EMBED_MODEL` (default `nomic-embed-text`).
-3. **Cosine top-k** chunks + **LLM** answers from excerpts only.
-
-Only one of `image_ref`, `video_ref`, or `document_ref` per job.
-
-### `rag_collection` (persistent Chroma RAG)
-
-1. **Create** a collection: `POST /v1/collections` with `{ "name": "my_kb" }` (Chroma requires **≥ 3** characters; names are sanitized).
-2. **Ingest** chunked documents: `POST /v1/collections/{name}/documents` with `{ "documents": [{ "id": "...", "text": "..." }] }` — embeddings come from Ollama (`AEGISAI_EMBED_MODEL`).
-3. **Query** via job: `POST /v1/jobs` with `"rag_collection": "my_kb"` and a non-empty `text` input (the question). No `image_ref` / `video_ref` / `document_ref` on the same job.
-
-Ephemeral file RAG (`document_ref`) is unchanged; job results tag `store: ephemeral` vs `store: chroma`.
-
-### Collections API (summary)
-
-| Method | Path | Purpose |
-|--------|------|---------|
-| GET | `/v1/collections` | List collection names |
-| POST | `/v1/collections` | Create (empty) collection |
-| POST | `/v1/collections/{name}/documents` | Ingest / upsert chunked docs |
-| DELETE | `/v1/collections/{name}` | Drop collection |
-
-Chroma files live under `AEGISAI_CHROMA_PERSIST_DIR` (default `data/chroma`).
-
-### Streaming (SSE)
-
-`POST /v1/stream/chat` accepts `{ "model": "llama3.2", "messages": [{ "role": "user", "content": "Hi" }] }` and returns **Server-Sent Events** streaming Ollama’s NDJSON lines (ends with `data: [DONE]`). Use for real-time UX without waiting for full job completion.
-
-### Phase 3 — sync query + job progress SSE + structured answers
-
-- **`POST /v1/query`** — synchronous, non-streaming Ollama `/api/chat` (same body shape as `/v1/stream/chat`: `model` + `messages`). Uses **`AEGISAI_QUERY_TIMEOUT_S`** (default 120s), not the long job timeout.
-- **`GET /v1/jobs/{job_id}/events`** — **SSE** of new **`JobEvent`** rows until the job finishes (`data: [DONE]`). Poll-based (~200ms); use for lightweight progress without WebSockets.
-- **`output_schema` on `JobRequest`** — when set, the final LLM step uses Ollama **`format: json`**; successful parses appear under `result.structured.parsed`, with **`parse_error`** if the model output is not valid JSON.
-
-### Phase 4 — cancellation + WebSocket progress + QA gate
-
-- **`POST /v1/jobs/{job_id}/cancel`** — sets a cooperative cancel flag; the worker stops before heavy pipeline steps and marks **`cancelled`** (metrics: **`jobs_cancelled_total`** / per-pipeline **`cancelled`**).
-- **`GET .../v1/ws/jobs/{job_id}`** (WebSocket) — JSON messages `{type: event|done|error, ...}` for the same event stream shape as SSE (poll-based server side).
-- **Local / CI QA:** run **`bash scripts/qa_verify.sh`** (ruff, verbose pytest + timings, `ci_gate`, `compileall`, `build`). GitHub Actions runs this script per matrix Python version.
-
-### OpenTelemetry (optional)
+From the repo root:
 
 ```bash
-pip install 'aegisai[otel]'
-export AEGISAI_OTEL_ENABLED=true
-# plus standard OTLP env, e.g. OTEL_EXPORTER_OTLP_ENDPOINT
-uvicorn aegisai.main:app --host 127.0.0.1 --port 8000
+docker compose up --build
 ```
 
-### Fine-tuning (playbook + stub)
+Then pull models inside the Ollama container (once):
 
-- [`docs/fine_tune/PLAYBOOK.md`](docs/fine_tune/PLAYBOOK.md) — dataset, safety, benchmark gate.
-- [`experiments/train_lora.py`](experiments/train_lora.py) — dry-run by default; `--execute` checks that `peft` / `transformers` / `torch` import (training loop not implemented in-repo).
+```bash
+docker compose exec ollama ollama pull llama3.2
+docker compose exec ollama ollama pull llava
+docker compose exec ollama ollama pull nomic-embed-text
+```
 
-## Routing policy (hybrid)
+- **API:** [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
+- **Ollama:** `http://127.0.0.1:11434` (mapped from the `ollama` service)
 
-Hybrid mode (`mode: hybrid`) is gated by [`config/routing_policy.yaml`](config/routing_policy.yaml):
+The app container sets `AEGISAI_OLLAMA_BASE_URL=http://ollama:11434`, persists Chroma under a Docker volume, and mounts the routing policy from `/app/config/routing_policy.yaml`.
 
-- **`hybrid_allowed_labels`** — sensitivity labels that may use hybrid (default: `public`, `internal`).
-- **`force_local_only`** — if `true`, hybrid is always rejected (kill switch).
+**Single image (bring your own Ollama):**
 
-Inspect the effective rules: `GET /v1/policy`.
+```bash
+docker build -t aegisai:local .
+docker run --rm -p 8000:8000 \
+  -e AEGISAI_OLLAMA_BASE_URL=http://host.docker.internal:11434 \
+  -v aegisai-chroma:/data/chroma \
+  aegisai:local
+```
 
-Every job stores an initial **`policy`** event with the policy version and route.
+(Use `host.docker.internal` on Docker Desktop; on Linux use the host bridge IP or `--network host`.)
 
-## Phase 2 — platform guardrails (optional)
+---
 
-- **`AEGISAI_API_KEY`** — when set, all `/v1/*` routes require `Authorization: Bearer <key>` or `X-API-Key: <key>`. `/health`, `/metrics`, and OpenAPI UIs stay open (tighten at your proxy if needed).
-- **`AEGISAI_MAX_CONCURRENT_JOBS`** — cap parallel pipeline executions; additional `POST /v1/jobs` returns **429** until a slot frees.
-- **`Idempotency-Key` header** on `POST /v1/jobs` — replays return the same `job_id` without enqueueing a duplicate (in-memory store; use for client retries).
+## Quickstart: local Python
 
-### DLP prototype (hybrid)
-
-- **`AEGISAI_DLP_ENABLED=true`** — regex scan over **text** inputs on **`mode=hybrid`** jobs (SSN- and card-like patterns; not a compliance product).
-- **`AEGISAI_DLP_BLOCK_HYBRID=true`** (default) — reject hybrid job creation with **400** when patterns match; use `local_only` or sanitize prompts.
-
-### Audit export
-
-- **`GET /v1/jobs/{job_id}/audit`** — JSON array of job events (same schema as embedded `events` on `GET /v1/jobs/{id}`).
-- **`GET /v1/jobs/{job_id}/audit?format=ndjson`** — **NDJSON** for log/SIEM pipelines.
-
-### Kubernetes (Helm sketch)
-
-- [`deploy/helm/aegisai`](deploy/helm/aegisai) — minimal Deployment + Service; optional PVC for Chroma. See chart [`README`](deploy/helm/aegisai/README.md).
-
-## Observability (lightweight)
-
-- Responses include **`X-Request-ID`** (pass the same header to correlate client retries).
-- Job creation logs a line at INFO with `job_id`, `request_id`, `mode`, and label.
-- **Prometheus-style metrics:** `GET /metrics` (root scrape) and `GET /v1/metrics` — JSON by default; `GET /v1/metrics?format=prometheus` for text exposition (counters + per-pipeline breakdown + rolling latency + **`jobs_in_flight`** gauge).
-- Optional **OTEL** FastAPI spans when `AEGISAI_OTEL_ENABLED=true` and `aegisai[otel]` is installed.
-
-## Quickstart
-
-### 1. Ollama
-
-Install [Ollama](https://ollama.com) and pull models (names must match your `.env` if you override defaults):
+### 1. Ollama (host)
 
 ```bash
 ollama pull llama3.2
@@ -135,9 +116,7 @@ ollama pull nomic-embed-text
 ollama list
 ```
 
-### 2. Python environment
-
-From the repo root:
+### 2. Virtualenv & install
 
 ```bash
 cd /path/to/AegisAI
@@ -146,95 +125,200 @@ source .venv/bin/activate   # Windows: .venv\Scripts\activate
 pip install -e ".[dev]"
 ```
 
-Copy [`.env.example`](.env.example) to `.env` and adjust if needed.
+Copy [.env.example](.env.example) to `.env` and adjust.
 
-### 3. Run the API
+### 3. Run
 
 ```bash
 uvicorn aegisai.main:app --reload --host 127.0.0.1 --port 8000
 ```
 
-Open **interactive docs**: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
+Open [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs).
 
-### 4. Smoke checks
+---
 
-Health:
+## Smoke checks & examples
+
+**Liveness & version** (no auth; useful behind load balancers):
 
 ```bash
 curl -s http://127.0.0.1:8000/health | python -m json.tool
+curl -s http://127.0.0.1:8000/version | python -m json.tool
 ```
 
-Ollama connectivity (lists tags when Ollama is up):
+**Ollama readiness** (lists models when Ollama is up):
 
 ```bash
 curl -s http://127.0.0.1:8000/v1/ready | python -m json.tool
 ```
 
-Image job — use an **absolute** `file://` URI to a readable image (when `AEGISAI_MEDIA_ROOT` is set, the file must live under that directory):
+**Image job** — use an absolute `file://` URI; if `AEGISAI_MEDIA_ROOT` is set, the file must sit under that directory:
 
 ```bash
 curl -s -X POST http://127.0.0.1:8000/v1/jobs \
   -H "Content-Type: application/json" \
   -d '{"inputs":[{"type":"image_ref","uri":"file:///absolute/path/to/image.png"},{"type":"text","text":"What is in this image?"}],"sensitivity_label":"internal","mode":"local_only"}' \
-| python -m json.tool
+  | python -m json.tool
 ```
 
-Poll until `status` is `succeeded` or `failed`:
+Poll job status:
 
 ```bash
 curl -s http://127.0.0.1:8000/v1/jobs/<job_id> | python -m json.tool
 ```
 
-### 5. Benchmark v0 (CLI)
+**Sync chat** (bounded timeout `AEGISAI_QUERY_TIMEOUT_S`):
 
-Requires Ollama running and models pulled:
+```bash
+curl -s -X POST http://127.0.0.1:8000/v1/query \
+  -H "Content-Type: application/json" \
+  -d '{"model":"llama3.2","messages":[{"role":"user","content":"Hello"}]}' | python -m json.tool
+```
+
+**Benchmark v0** (requires Ollama + models):
 
 ```bash
 python benchmarks/run_v0.py /absolute/path/to/image.png --question "Summarize visible text."
 ```
 
-### 6. Tests
+---
+
+## HTTP API summary
+
+| Method | Path | Purpose |
+|--------|------|---------|
+| GET | `/health` | Liveness |
+| GET | `/version` | Package name + version |
+| GET | `/metrics` | Prometheus scrape (text) |
+| GET | `/v1/ready` | Ollama tags probe |
+| GET | `/v1/policy` | Effective hybrid routing JSON |
+| GET | `/v1/metrics` | JSON metrics; `?format=prometheus` |
+| POST | `/v1/jobs` | Create async job (`Idempotency-Key` optional) |
+| GET | `/v1/jobs/{id}` | Job status + events + result |
+| POST | `/v1/jobs/{id}/cancel` | Request cooperative cancellation |
+| GET | `/v1/jobs/{id}/events` | SSE job event stream → `[DONE]` |
+| WS | `/v1/ws/jobs/{id}` | WebSocket job events → `{type: done}` |
+| GET | `/v1/jobs/{id}/audit` | Events JSON; `?format=ndjson` |
+| POST | `/v1/stream/chat` | SSE stream to Ollama |
+| POST | `/v1/query` | Sync non-streaming chat |
+| — | `/v1/collections/*` | Chroma collection CRUD + ingest |
+
+Interactive OpenAPI: `/docs`, `/redoc`.
+
+When **`AEGISAI_API_KEY`** is set, **`/v1/*`** requires `Authorization: Bearer <key>` or `X-API-Key` (except public paths: `/health`, `/version`, `/metrics`, docs, OpenAPI).
+
+---
+
+## Job request model
+
+- **`inputs[]`** — `image_ref` | `video_ref` | `document_ref` | `text` (exactly one media type per job unless using `rag_collection`-only jobs).
+- **`sensitivity_label`** — `public` \| `internal` \| `confidential` \| `regulated`.
+- **`mode`** — `local_only` \| `hybrid` (enforced against [config/routing_policy.yaml](config/routing_policy.yaml)).
+- **`video_sampling`** — `max_frames`, optional `fps`, optional **`scene_detection`** + **`scene_threshold`**.
+- **`rag_collection`** — Chroma collection name + text question (no other media).
+- **`output_schema`** — If set, final LLM step uses JSON mode; parse under `result.structured.parsed`.
+
+Every job gets an initial **`policy`** event; failures and latencies are recorded in **`JobEvent`** (audit-friendly, no raw secrets).
+
+---
+
+## Configuration (environment)
+
+All settings use the **`AEGISAI_`** prefix (see [.env.example](.env.example)).
+
+| Variable | Default | Meaning |
+|----------|---------|---------|
+| `AEGISAI_OLLAMA_BASE_URL` | `http://127.0.0.1:11434` | Ollama base URL |
+| `AEGISAI_VISION_MODEL` | `llava` | Vision model |
+| `AEGISAI_LLM_MODEL` | `llama3.2` | Text model for answer step |
+| `AEGISAI_EMBED_MODEL` | `nomic-embed-text` | Embeddings for RAG |
+| `AEGISAI_RAG_CHUNK_SIZE` | `512` | RAG chunk size |
+| `AEGISAI_RAG_CHUNK_OVERLAP` | `64` | Chunk overlap |
+| `AEGISAI_RAG_TOP_K` | `4` | Chunks retrieved |
+| `AEGISAI_OLLAMA_TIMEOUT_S` | `600` | Ollama HTTP timeout (jobs) |
+| `AEGISAI_QUERY_TIMEOUT_S` | `120` | Ollama timeout for `POST /v1/query` |
+| `AEGISAI_MEDIA_ROOT` | _(unset)_ | If set, restrict `file://` resolution |
+| `AEGISAI_ROUTING_POLICY_PATH` | _(auto in repo)_ | Hybrid policy YAML (set in Docker to `/app/config/...`) |
+| `AEGISAI_CHROMA_PERSIST_DIR` | `data/chroma` | Chroma directory |
+| `AEGISAI_OTEL_ENABLED` | `false` | OpenTelemetry (`pip install 'aegisai[otel]'`) |
+| `AEGISAI_API_KEY` | _(unset)_ | Protects `/v1/*` with Bearer or `X-API-Key` |
+| `AEGISAI_MAX_CONCURRENT_JOBS` | `8` | Parallel jobs; extra → **429** |
+| `AEGISAI_DLP_ENABLED` | `false` | Regex scan on hybrid job text inputs |
+| `AEGISAI_DLP_BLOCK_HYBRID` | `true` | **400** if patterns match on hybrid |
+
+---
+
+## Security & privacy
+
+- Default path is **local Ollama**; hybrid is **policy-gated** and can be disabled entirely (`force_local_only`).
+- **DLP** is a **prototype** regex gate — not a compliance substitute.
+- **API key** is optional; pair with TLS and network policy in production.
+- Do not log raw prompts/media in untrusted sinks; audit export is **events only**.
+
+---
+
+## Observability
+
+- **`X-Request-ID`** on responses.
+- **Prometheus** — `GET /metrics` and `GET /v1/metrics?format=prometheus` (completions, failures, **cancellations**, per-pipeline, latency average, in-flight gauge).
+- **Optional OTEL** — `aegisai[otel]` and `AEGISAI_OTEL_ENABLED=true`.
+
+---
+
+## Benchmarks & Helm
+
+- **Benchmark CLI:** [benchmarks/run_v0.py](benchmarks/run_v0.py) · [benchmarks/README.md](benchmarks/README.md)
+- **In-package harness:** `aegisai.benchmarks.run_image_benchmark`
+- **Helm (sketch):** [deploy/helm/aegisai](deploy/helm/aegisai)
+
+---
+
+## Development & QA
+
+**Run tests:**
 
 ```bash
 pytest -q
 ```
 
-Deep verification (lint, compile, full suite, optional wheel build):
+**Full local QA** (same as CI: Ruff, verbose pytest + slowest tests, `ci_gate`, `compileall`, wheel build):
 
 ```bash
-./scripts/verify_e2e.sh
+PYTHON=python3 bash scripts/qa_verify.sh
+# or with the project venv:
+PYTHON=.venv/bin/python3 bash scripts/qa_verify.sh
 ```
 
-## Configuration
+**Legacy helper:** [scripts/verify_e2e.sh](scripts/verify_e2e.sh) if present.
 
-| Variable | Default | Meaning |
-|----------|---------|---------|
-| `AEGISAI_OLLAMA_BASE_URL` | `http://127.0.0.1:11434` | Ollama HTTP API |
-| `AEGISAI_VISION_MODEL` | `llava` | Vision / VLM |
-| `AEGISAI_LLM_MODEL` | `llama3.2` | Text model for second step |
-| `AEGISAI_MEDIA_ROOT` | _(unset)_ | If set, `file://` images must resolve under this path |
-| `AEGISAI_OLLAMA_TIMEOUT_S` | `600` | Per-request timeout to Ollama |
-| `AEGISAI_EMBED_MODEL` | `nomic-embed-text` | Embedding model for `document_ref` |
-| `AEGISAI_RAG_CHUNK_SIZE` | `512` | Chunk size (characters) |
-| `AEGISAI_RAG_CHUNK_OVERLAP` | `64` | Overlap between chunks |
-| `AEGISAI_RAG_TOP_K` | `4` | Chunks passed to the LLM |
-| `AEGISAI_ROUTING_POLICY_PATH` | _(auto)_ | YAML file for hybrid rules; default repo `config/routing_policy.yaml` |
-| `AEGISAI_CHROMA_PERSIST_DIR` | `data/chroma` | Chroma persistence directory |
-| `AEGISAI_OTEL_ENABLED` | `false` | Enable OpenTelemetry instrumentation |
+GitHub Actions runs **`scripts/qa_verify.sh`** on Python **3.11** and **3.12**.
 
-## Repo layout
+**Container image check** (requires Docker daemon):
+
+```bash
+docker build -t aegisai:local .
+```
+
+---
+
+## Repository layout
 
 | Path | Purpose |
 |------|---------|
-| [`planning.md`](planning.md) | Strategy, integrations, design/architecture specs |
-| [`tasks.md`](tasks.md) | Checklist of all work |
-| [`LOG.md`](LOG.md) | Prompt and completion audit log |
-| `src/aegisai/` | FastAPI app, Ollama client, pipelines, Chroma ingest |
-| `docs/fine_tune/` | Fine-tuning playbook (stub) |
-| `docs/adr/` | Architecture Decision Records |
+| [planning.md](planning.md) | Strategy, integrations, NFRs |
+| [tasks.md](tasks.md) | Work checklist |
+| [LOG.md](LOG.md) | Session / release notes |
+| `src/aegisai/` | Application code |
 | `config/` | Routing policy YAML |
-| `benchmarks/` | Harness scripts (datasets later) |
+| `docs/adr/` | Architecture Decision Records |
+| `docs/fine_tune/` | Fine-tuning playbook |
+| `benchmarks/` | CLI benchmarks |
+| `deploy/helm/aegisai` | Kubernetes Helm chart |
 | `tests/` | Pytest suite |
+| `scripts/qa_verify.sh` | Full QA gate |
+| `Dockerfile` / `docker-compose.yml` | Container deployment |
+
+---
 
 ## License
 

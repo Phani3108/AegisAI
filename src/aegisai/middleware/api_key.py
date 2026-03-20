@@ -8,7 +8,7 @@ from aegisai.config import get_settings
 
 
 def _exempt_path(path: str) -> bool:
-    if path in ("/health", "/metrics", "/openapi.json", "/favicon.ico"):
+    if path in ("/health", "/version", "/metrics", "/openapi.json", "/favicon.ico"):
         return True
     if path.startswith("/docs") or path.startswith("/redoc"):
         return True
