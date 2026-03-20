@@ -19,9 +19,13 @@ Use this when you promote from **Phase 1 RAG / local inference** to **domain-tun
 - Do not train on **regulated** or **unapproved** corpora.
 - Keep a **frozen eval set** that never appears in training.
 
-## Next implementation steps (for this repo)
+## Executable stub (this repo)
 
-- Add `experiments/` with a minimal LoRA training script template.
-- Wire CI (optional) to run `pytest` + benchmark smoke on PRs.
+- [`experiments/train_lora.py`](../../experiments/train_lora.py) — `python experiments/train_lora.py` (dry-run) or `--execute` to verify imports after installing `peft` / `transformers` / `torch`. The training loop is **not** implemented; treat as a scaffold.
 
-This file is intentionally high-level until you choose a base model and hosting path (Ollama import vs HF weights).
+## CI / benchmark gate
+
+- GitHub Actions runs **ruff**, **pytest**, and [`scripts/ci_gate.py`](../../scripts/ci_gate.py) on pushes/PRs to `main` (see [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml)).
+- Extend `scripts/ci_gate.py` later with coverage floors or benchmark regression thresholds.
+
+This file stays high-level until you choose a base model and hosting path (Ollama import vs HF weights).

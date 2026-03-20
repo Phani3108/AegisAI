@@ -60,6 +60,12 @@ Append-only chronological record. Each entry: **date**, **user prompt (summary)*
 - **Actions:** Added `tests/test_e2e_deep.py` (Chroma+RAG job flow + mocked image job), `scripts/verify_e2e.sh`, dev deps `pytest-cov`, `build`; ran **ruff**, **compileall**, **15 pytest** tests, **`python -m build`** (sdist+wheel OK). Added **MIT** `LICENSE`, README repo link + verify script section. Initialized git in project dir, `main` branch, pushed to `origin` (https://github.com/Phani3108/AegisAI).
 - **Files:** `tests/test_e2e_deep.py`, `scripts/verify_e2e.sh`, `pyproject.toml`, `LICENSE`, `README.md`, `tasks.md`, `LOG.md`
 
+### Entry 10 — Metrics, CI gate, train stub
+
+- **Prompt summary:** Continue next phases: observability/metrics, CI, benchmark gate, runnable fine-tuning stub.
+- **Actions:** Fixed FastAPI `GET /v1/metrics` with `response_model=None` (union JSON/Prometheus). In-process metrics (`jobs_completed_total`, `jobs_failed_total`, per-pipeline, rolling latency), `GET /metrics` scrape, `job_runner` recording, `tests/test_metrics_api.py` + `conftest` reset. **`.github/workflows/ci.yml`**: ruff, pytest, `scripts/ci_gate.py`, build. **`experiments/train_lora.py`**: dry-run default, `--execute` import check. **PLAYBOOK** links to experiments + CI. Ruff line-wrap in `metrics.py`. **tasks.md** Phase 1+ checkboxes updated.
+- **Files:** `src/aegisai/api/routes/v1_metrics.py`, `src/aegisai/api/routes/ops_metrics.py`, `src/aegisai/services/metrics.py`, `src/aegisai/services/job_runner.py`, `src/aegisai/main.py`, `tests/conftest.py`, `tests/test_metrics_api.py`, `.github/workflows/ci.yml`, `scripts/ci_gate.py`, `experiments/train_lora.py`, `docs/fine_tune/PLAYBOOK.md`, `tasks.md`, `LOG.md`
+
 ---
 
 *End of log (append below).*

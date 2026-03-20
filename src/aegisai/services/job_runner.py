@@ -18,7 +18,7 @@ from aegisai.schemas.jobs import (
     JobStatus,
     LatencyBreakdownMs,
 )
-from aegisai.services import job_store
+from aegisai.services import job_store, metrics
 
 
 def _has_input(body: JobRequest, t: InputType) -> bool:
@@ -36,6 +36,13 @@ def _media_conflict(body: JobRequest) -> bool:
         if _has_input(body, t)
     )
     return n > 1
+
+
+async def _record_success(body: JobRequest, latency: LatencyBreakdownMs | None) -> None:
+    await metrics.record_job_completed(
+        metrics.infer_pipeline_kind(body),
+        metrics.latency_total_ms(latency),
+    )
 
 
 async def execute_job(
@@ -120,6 +127,7 @@ async def execute_job(
                     )
                 ],
             )
+            await _record_success(body, latency)
             return
 
         if _media_conflict(body):
@@ -159,6 +167,7 @@ async def execute_job(
                     )
                 ],
             )
+            await _record_success(body, latency)
             return
 
         if _has_input(body, InputType.document_ref):
@@ -194,6 +203,7 @@ async def execute_job(
                     )
                 ],
             )
+            await _record_success(body, latency)
             return
 
         if not _has_input(body, InputType.image_ref):
@@ -226,7 +236,9 @@ async def execute_job(
                 )
             ],
         )
+        await _record_success(body, latency)
     except Exception as e:
+        await metrics.record_job_failed(metrics.infer_pipeline_kind(body))
         failed = job_store.utcnow()
         cur4 = (await job_store.get_job(job_id)) or cur
         await job_store.patch_job(

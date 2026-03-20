@@ -66,9 +66,10 @@ export AEGISAI_OTEL_ENABLED=true
 uvicorn aegisai.main:app --host 127.0.0.1 --port 8000
 ```
 
-### Fine-tuning (playbook)
+### Fine-tuning (playbook + stub)
 
-See [`docs/fine_tune/PLAYBOOK.md`](docs/fine_tune/PLAYBOOK.md) for dataset, LoRA, and benchmark gate guidance (stub until you add training scripts).
+- [`docs/fine_tune/PLAYBOOK.md`](docs/fine_tune/PLAYBOOK.md) — dataset, safety, benchmark gate.
+- [`experiments/train_lora.py`](experiments/train_lora.py) — dry-run by default; `--execute` checks that `peft` / `transformers` / `torch` import (training loop not implemented in-repo).
 
 ## Routing policy (hybrid)
 
@@ -85,6 +86,7 @@ Every job stores an initial **`policy`** event with the policy version and route
 
 - Responses include **`X-Request-ID`** (pass the same header to correlate client retries).
 - Job creation logs a line at INFO with `job_id`, `request_id`, `mode`, and label.
+- **Prometheus-style metrics:** `GET /metrics` (root scrape) and `GET /v1/metrics` — JSON by default; `GET /v1/metrics?format=prometheus` for text exposition (counters + per-pipeline breakdown + rolling latency).
 - Optional **OTEL** FastAPI spans when `AEGISAI_OTEL_ENABLED=true` and `aegisai[otel]` is installed.
 
 ## Quickstart

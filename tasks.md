@@ -23,10 +23,10 @@
 - [x] Hybrid router: `config/routing_policy.yaml` + `GET /v1/policy` + policy `JobEvent` + `force_local_only` kill switch
 - [x] RAG: **minimal** path — `document_ref` with Ollama embeddings + in-memory cosine top-k (no vector DB yet)
 - [x] Persistent vector DB + ingest API (**Chroma** + `/v1/collections/*` + `rag_collection` jobs)
-- [ ] Observability: richer structured logs / metrics beyond JobEvent latencies
+- [x] Observability: Prometheus-style counters + rolling latency (`/v1/metrics`, `GET /metrics`)
 - [x] Observability (minimal): `X-Request-ID` + job_create INFO logs + **optional OTEL** (`aegisai[otel]`, `AEGISAI_OTEL_ENABLED`)
 - [x] Real-time: **SSE** `POST /v1/stream/chat` (Ollama streaming proxy)
-- [ ] Fine-tuning track: executable LoRA/PEFT scripts + CI benchmark gate ([`docs/fine_tune/PLAYBOOK.md`](docs/fine_tune/PLAYBOOK.md) stub)
+- [x] Fine-tuning track: [`experiments/train_lora.py`](experiments/train_lora.py) stub + CI gate ([`docs/fine_tune/PLAYBOOK.md`](docs/fine_tune/PLAYBOOK.md))
 
 ---
 
