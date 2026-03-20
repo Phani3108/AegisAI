@@ -14,7 +14,10 @@ _IDEM_REDIS_PREFIX = "aegisai:idem:"
 
 _jobs: dict[str, JobStatusResponse] = {}
 _requests: dict[str, JobRequest] = {}
+_attempts: dict[str, int] = {}
+_dead_letter: set[str] = set()
 _idempotency: dict[str, str] = {}
+_idempotency_hash: dict[str, str] = {}
 _lock = asyncio.Lock()
 _loaded = False
 
@@ -29,7 +32,10 @@ def _dump() -> None:
     out = {
         "jobs": {k: v.model_dump(mode="json") for k, v in _jobs.items()},
         "requests": {k: v.model_dump(mode="json") for k, v in _requests.items()},
+        "attempts": dict(_attempts),
+        "dead_letter": sorted(_dead_letter),
         "idempotency": dict(_idempotency),
+        "idempotency_hash": dict(_idempotency_hash),
     }
     _state_path().write_text(json.dumps(out, default=str), encoding="utf-8")
 
@@ -46,13 +52,22 @@ def _load() -> None:
         data = json.loads(p.read_text(encoding="utf-8"))
         jobs = data.get("jobs") or {}
         reqs = data.get("requests") or {}
+        attempts = data.get("attempts") or {}
+        dead = data.get("dead_letter") or []
         idem = data.get("idempotency") or {}
+        idem_h = data.get("idempotency_hash") or {}
         for k, v in jobs.items():
             _jobs[str(k)] = JobStatusResponse.model_validate(v)
         for k, v in reqs.items():
             _requests[str(k)] = JobRequest.model_validate(v)
+        for k, v in attempts.items():
+            _attempts[str(k)] = int(v)
+        for x in dead:
+            _dead_letter.add(str(x))
         for k, v in idem.items():
             _idempotency[str(k)] = str(v)
+        for k, v in idem_h.items():
+            _idempotency_hash[str(k)] = str(v)
     except Exception:
         # Fail-open for corrupted local state files.
         pass
@@ -112,6 +127,28 @@ async def list_recoverable_jobs() -> list[str]:
         return out
 
 
+async def increment_attempt(job_id: str) -> int:
+    async with _lock:
+        _load()
+        n = int(_attempts.get(job_id, 0)) + 1
+        _attempts[job_id] = n
+        _dump()
+        return n
+
+
+async def mark_dead_letter(job_id: str) -> None:
+    async with _lock:
+        _load()
+        _dead_letter.add(job_id)
+        _dump()
+
+
+async def is_dead_letter(job_id: str) -> bool:
+    async with _lock:
+        _load()
+        return job_id in _dead_letter
+
+
 async def idempotency_get(key: str) -> str | None:
     r = get_redis_client()
     if r is not None:
@@ -122,7 +159,21 @@ async def idempotency_get(key: str) -> str | None:
         return _idempotency.get(key)
 
 
-async def idempotency_put_if_absent(key: str, job_id: str) -> str | None:
+async def idempotency_get_request_hash(key: str) -> str | None:
+    r = get_redis_client()
+    if r is not None:
+        v = await r.get(_IDEM_REDIS_PREFIX + key + ":hash")
+        return str(v) if v is not None else None
+    async with _lock:
+        _load()
+        return _idempotency_hash.get(key)
+
+
+async def idempotency_put_if_absent(
+    key: str,
+    job_id: str,
+    request_hash: str | None = None,
+) -> str | None:
     """Returns existing job_id if key is already mapped; else stores key→job_id and returns None."""
     r = get_redis_client()
     if r is not None:
@@ -130,6 +181,8 @@ async def idempotency_put_if_absent(key: str, job_id: str) -> str | None:
         ttl = get_settings().idempotency_ttl_seconds
         ok = await r.set(rk, job_id, nx=True, ex=ttl)
         if ok:
+            if request_hash:
+                await r.set(_IDEM_REDIS_PREFIX + key + ":hash", request_hash, ex=ttl)
             return None
         existing = await r.get(rk)
         return str(existing) if existing is not None else None
@@ -139,6 +192,8 @@ async def idempotency_put_if_absent(key: str, job_id: str) -> str | None:
         if cur is not None:
             return cur
         _idempotency[key] = job_id
+        if request_hash:
+            _idempotency_hash[key] = request_hash
         _dump()
         return None
 
@@ -147,10 +202,12 @@ async def idempotency_delete(key: str) -> None:
     r = get_redis_client()
     if r is not None:
         await r.delete(_IDEM_REDIS_PREFIX + key)
+        await r.delete(_IDEM_REDIS_PREFIX + key + ":hash")
         return
     async with _lock:
         _load()
         _idempotency.pop(key, None)
+        _idempotency_hash.pop(key, None)
         _dump()
 
 
@@ -160,7 +217,10 @@ async def reset_test_state() -> None:
     async with _lock:
         _jobs.clear()
         _requests.clear()
+        _attempts.clear()
+        _dead_letter.clear()
         _idempotency.clear()
+        _idempotency_hash.clear()
         _loaded = False
         p = _state_path()
         if p.exists():

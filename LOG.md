@@ -84,6 +84,11 @@ Append-only chronological record. Each entry: **date**, **user prompt (summary)*
 - **Prompt summary:** Implement forward plan phase for durable job backbone.
 - **Actions:** Added disk-backed persistence for jobs/requests/idempotency in [`job_store`](src/aegisai/services/job_store.py) and startup recovery task in [`job_recovery.py`](src/aegisai/services/job_recovery.py), wired through [`main.py`](src/aegisai/main.py). Kept API endpoints stable in [`v1_jobs`](src/aegisai/api/routes/v1_jobs.py). Full QA gate passed (52 tests).
 
+### Entry 25 — Phase 14: distributed controls (idempotency hash, cancel path, retry counters)
+
+- **Prompt summary:** Continue forward plan with distributed idempotency/cancel semantics and retry/dead-letter behavior.
+- **Actions:** Added request-payload hash protection for idempotency key reuse (`409` on mismatch) in [`v1_jobs`](src/aegisai/api/routes/v1_jobs.py) + [`job_store`](src/aegisai/services/job_store.py), added Redis-backed distributed cancellation in [`job_cancel`](src/aegisai/services/job_cancel.py), added transient retry wrapper + dead-letter marking and new counters in [`metrics`](src/aegisai/services/metrics.py), with configurable retry attempts in [`config`](src/aegisai/config.py). Full QA gate passed (52 tests).
+
 ### Entry 19 — Phase 9: OpenAPI polish, integrator kit, demo UI, optional Redis
 
 - **Prompt summary:** Implement attached plan (planning §9, OpenAPI, .http + SDK doc, demo UI, Redis idempotency/rate limit).

@@ -1,4 +1,5 @@
 import asyncio
+import hashlib
 import json
 import logging
 import uuid
@@ -32,7 +33,7 @@ from aegisai.schemas.jobs import (
     JobStatus,
     JobStatusResponse,
 )
-from aegisai.services import job_store
+from aegisai.services import job_store, metrics
 from aegisai.services.job_cancel import request_cancel
 from aegisai.services.job_concurrency import get_limiter
 from aegisai.services.job_runner import execute_job
@@ -43,6 +44,17 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
+def _request_hash(body: JobRequest) -> str:
+    canonical = json.dumps(body.model_dump(mode="json"), sort_keys=True, separators=(",", ":"))
+    return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+
+
+def _is_transient_error(err: str) -> bool:
+    e = (err or "").lower()
+    keys = ("timeout", "tempor", "connection", "503", "502", "network")
+    return any(k in e for k in keys)
+
+
 async def _execute_job_guarded(
     job_id: str,
     body: JobRequest,
@@ -51,7 +63,46 @@ async def _execute_job_guarded(
     chroma: Any,
 ) -> None:
     try:
-        await execute_job(job_id, body, settings, http, chroma)
+        max_attempts = int(settings.job_retry_attempts) + 1
+        for attempt in range(1, max_attempts + 1):
+            await job_store.increment_attempt(job_id)
+            await execute_job(job_id, body, settings, http, chroma)
+            cur = await job_store.get_job(job_id)
+            if cur is None or cur.status != JobStatus.failed:
+                return
+            if not _is_transient_error(cur.error or ""):
+                return
+            if attempt >= max_attempts:
+                now = _utcnow()
+                cur2 = await job_store.get_job(job_id)
+                if cur2 is not None:
+                    await job_store.patch_job(
+                        job_id,
+                        events=cur2.events
+                        + [
+                            JobEvent(
+                                ts=now,
+                                stage="pipeline",
+                                message="dead-letter after retries exhausted",
+                                route=cur2.route,
+                            )
+                        ],
+                    )
+                await job_store.mark_dead_letter(job_id)
+                await metrics.record_job_dead_letter()
+                return
+            await metrics.record_job_retried()
+            now = _utcnow()
+            cur2 = await job_store.get_job(job_id)
+            if cur2 is not None:
+                await job_store.patch_job(
+                    job_id,
+                    status=JobStatus.queued,
+                    updated_at=now,
+                    events=cur2.events
+                    + [JobEvent(ts=now, stage="pipeline", message="retrying transient failure")],
+                )
+            await asyncio.sleep(0.25 * attempt)
     finally:
         await get_limiter().release()
 
@@ -130,9 +181,16 @@ async def create_job(
             )
 
     idem_key = ((idempotency_key or "").strip()[:256] or None)
+    req_hash = _request_hash(body)
     if idem_key:
         existing_id = await job_store.idempotency_get(idem_key)
         if existing_id:
+            old_hash = await job_store.idempotency_get_request_hash(idem_key)
+            if old_hash and old_hash != req_hash:
+                raise HTTPException(
+                    status_code=409,
+                    detail="idempotency key reuse with different request payload",
+                )
             job = await job_store.get_job(existing_id)
             if job is None:
                 raise HTTPException(
@@ -155,7 +213,7 @@ async def create_job(
 
     try:
         if idem_key:
-            prev = await job_store.idempotency_put_if_absent(idem_key, job_id)
+            prev = await job_store.idempotency_put_if_absent(idem_key, job_id, req_hash)
             if prev is not None:
                 await limiter.release()
                 job = await job_store.get_job(prev)

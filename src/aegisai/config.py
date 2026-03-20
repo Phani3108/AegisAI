@@ -88,6 +88,12 @@ class Settings(BaseSettings):
         le=2_592_000,
         description="TTL (seconds) for Redis Idempotency-Key entries (default 7 days).",
     )
+    job_retry_attempts: int = Field(
+        default=2,
+        ge=0,
+        le=5,
+        description="Retry attempts for transient job failures before dead-letter marking.",
+    )
 
 
 def get_settings() -> Settings:

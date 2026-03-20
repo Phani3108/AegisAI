@@ -262,4 +262,4 @@ Phased approach to avoid overbuilding:
 
 ---
 
-*Last updated: Phase 13 (durable job/request persistence + startup recovery — see [tasks.md](tasks.md)).*
+*Last updated: Phase 14 (distributed idempotency/cancel semantics + retry/dead-letter counters — see [tasks.md](tasks.md)).*

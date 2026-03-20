@@ -7,7 +7,7 @@
 **Repository:** [github.com/Phani3108/AegisAI](https://github.com/Phani3108/AegisAI)  
 **Docs:** [planning.md](planning.md) (architecture & tiers) · [tasks.md](tasks.md) (checklist) · [LOG.md](LOG.md) (changelog) · [docs/integrators/SDK.md](docs/integrators/SDK.md) (OpenAPI / clients)
 
-**Status:** Phases **0–13** shipped (see roadmap table below). CI runs **Ruff**, **pytest** (3.11 + 3.12), package **build**, and **Docker image build**. Optional extras: **`aegisai[otel]`**, **`aegisai[redis]`** (shared idempotency + rate limits across replicas).
+**Status:** Phases **0–14** shipped (see roadmap table below). CI runs **Ruff**, **pytest** (3.11 + 3.12), package **build**, and **Docker image build**. Optional extras: **`aegisai[otel]`**, **`aegisai[redis]`** (shared idempotency + rate limits across replicas).
 
 ---
 
@@ -104,6 +104,7 @@ Simple carousel view (open one slide at a time):
 | **11** | Frontend realtime UX | Demo UI adds **cancel job** action and **live SSE events viewer** (`/v1/jobs/{id}/events`) to make job progress easier to track |
 | **12** | Docs UX | Added demo screenshots in simple README carousel format for quick visual onboarding |
 | **13** | Durable jobs | Added disk-backed persisted job/request state + startup recovery for queued/running jobs |
+| **14** | Distributed controls | Added idempotency payload fingerprint checks, Redis-backed distributed cancellation path, and retry/dead-letter counters |
 
 Scene-based video sampling, DLP prototype, and Helm chart are in-tree; see [tasks.md](tasks.md).
 

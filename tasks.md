@@ -109,6 +109,12 @@
 - [x] Added startup recovery for queued/running jobs ([`job_recovery.py`](src/aegisai/services/job_recovery.py), wired in [`main.py`](src/aegisai/main.py))
 - [x] Kept existing API contract stable while adding durable behavior ([`v1_jobs`](src/aegisai/api/routes/v1_jobs.py))
 
+## Phase 14 — Distributed control semantics
+
+- [x] Idempotency request fingerprint with conflict protection for key reuse ([`v1_jobs`](src/aegisai/api/routes/v1_jobs.py), [`job_store`](src/aegisai/services/job_store.py))
+- [x] Distributed cancellation path using Redis when configured ([`job_cancel`](src/aegisai/services/job_cancel.py))
+- [x] Retry/dead-letter counters and transient retry wrapper in job guard ([`v1_jobs`](src/aegisai/api/routes/v1_jobs.py), [`metrics`](src/aegisai/services/metrics.py), [`config`](src/aegisai/config.py))
+
 ---
 
 ## Backlog / ideas (not committed)
