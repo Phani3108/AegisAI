@@ -94,6 +94,11 @@ Append-only chronological record. Each entry: **date**, **user prompt (summary)*
 - **Prompt summary:** Continue forward plan phase for transient retries and better observability.
 - **Actions:** Added Ollama retry/backoff settings and wrappers in [`ollama/client.py`](src/aegisai/ollama/client.py) + [`config`](src/aegisai/config.py), wired retry options into query/stream/collections/readiness/pipeline callers, added p95/p99 latency metrics plus retry/dead-letter counters in [`metrics`](src/aegisai/services/metrics.py), and added request-id context propagation for JSON logs via [`request_context`](src/aegisai/services/request_context.py), [`request_id` middleware](src/aegisai/middleware/request_id.py), and [`logging_json`](src/aegisai/logging_json.py). Full QA gate passed (52 tests).
 
+### Entry 27 — Phase 16: security + governance baseline
+
+- **Prompt summary:** Add OIDC/JWT-capable auth path, role checks, and endpoint protection model.
+- **Actions:** Extended middleware to support `api_key` / `jwt` / `both` modes with HS256 Bearer token verification and role extraction in [`api_key`](src/aegisai/middleware/api_key.py); added optional protected ops endpoints (`/ready`, `/metrics`) via config; extended routing policy with `hybrid_allowed_roles` and applied role-aware hybrid checks in job creation flow. Added security tests in [`tests/test_phase16_security.py`](tests/test_phase16_security.py). Full QA gate passed (54 tests).
+
 ### Entry 19 — Phase 9: OpenAPI polish, integrator kit, demo UI, optional Redis
 
 - **Prompt summary:** Implement attached plan (planning §9, OpenAPI, .http + SDK doc, demo UI, Redis idempotency/rate limit).

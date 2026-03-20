@@ -122,6 +122,12 @@
 - [x] Added latency p95/p99 plus retry/dead-letter metrics in Prometheus ([`metrics`](src/aegisai/services/metrics.py))
 - [x] Request-id context propagation in JSON logs ([`request_id` middleware](src/aegisai/middleware/request_id.py), [`logging_json`](src/aegisai/logging_json.py))
 
+## Phase 16 — Security + governance baseline
+
+- [x] Added `auth_mode` (`api_key`/`jwt`/`both`) with HS256 Bearer JWT path in middleware
+- [x] Added optional secure ops endpoint protection (`/ready`, `/metrics`) via config
+- [x] Added role-aware hybrid routing policy support (`hybrid_allowed_roles`) and tests
+
 ---
 
 ## Backlog / ideas (not committed)

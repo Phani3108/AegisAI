@@ -11,3 +11,7 @@ hybrid_allowed_labels:
 
 # If true, all jobs must behave as local-only (hybrid always rejected).
 force_local_only: false
+
+# Optional role allowlist for mode=hybrid (from JWT claim `roles`).
+# Empty => no role restriction.
+hybrid_allowed_roles: []

@@ -18,6 +18,13 @@ class RoutingPolicy(BaseModel):
         default=False,
         description="If true, hybrid requests are always rejected.",
     )
+    hybrid_allowed_roles: list[str] = Field(
+        default_factory=list,
+        description=(
+            "Optional role allowlist for hybrid mode. "
+            "Empty list means no role restriction."
+        ),
+    )
 
     @model_validator(mode="after")
     def _labels_must_be_known(self) -> RoutingPolicy:
@@ -32,9 +39,19 @@ class RoutingPolicy(BaseModel):
             return False
         return sensitivity_label in self.hybrid_allowed_labels
 
+    def allows_hybrid_for_roles(self, sensitivity_label: str, roles: list[str]) -> bool:
+        if not self.allows_hybrid(sensitivity_label):
+            return False
+        if not self.hybrid_allowed_roles:
+            return True
+        rs = {r.strip().lower() for r in roles if r and r.strip()}
+        allowed = {r.strip().lower() for r in self.hybrid_allowed_roles if r and r.strip()}
+        return bool(rs.intersection(allowed))
+
     def public_view(self) -> dict:
         return {
             "version": self.version,
             "hybrid_allowed_labels": list(self.hybrid_allowed_labels),
             "force_local_only": self.force_local_only,
+            "hybrid_allowed_roles": list(self.hybrid_allowed_roles),
         }

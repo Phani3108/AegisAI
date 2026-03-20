@@ -49,6 +49,22 @@ class Settings(BaseSettings):
         default=None,
         description="If set, /v1/* requires Authorization: Bearer <key> or X-API-Key.",
     )
+    auth_mode: str = Field(
+        default="api_key",
+        description="Auth mode: api_key | jwt | both.",
+    )
+    jwt_secret: str | None = Field(
+        default=None,
+        description="HS256 secret for Bearer JWT mode.",
+    )
+    jwt_algorithm: str = Field(
+        default="HS256",
+        description="JWT algorithm for Bearer JWT mode.",
+    )
+    protect_ops_endpoints: bool = Field(
+        default=False,
+        description="If true, /ready and /metrics endpoints require authentication.",
+    )
     max_concurrent_jobs: int = Field(
         default=8,
         ge=1,

@@ -7,7 +7,7 @@
 **Repository:** [github.com/Phani3108/AegisAI](https://github.com/Phani3108/AegisAI)  
 **Docs:** [planning.md](planning.md) (architecture & tiers) · [tasks.md](tasks.md) (checklist) · [LOG.md](LOG.md) (changelog) · [docs/integrators/SDK.md](docs/integrators/SDK.md) (OpenAPI / clients)
 
-**Status:** Phases **0–15** shipped (see roadmap table below). CI runs **Ruff**, **pytest** (3.11 + 3.12), package **build**, and **Docker image build**. Optional extras: **`aegisai[otel]`**, **`aegisai[redis]`** (shared idempotency + rate limits across replicas).
+**Status:** Phases **0–16** shipped (see roadmap table below). CI runs **Ruff**, **pytest** (3.11 + 3.12), package **build**, and **Docker image build**. Optional extras: **`aegisai[otel]`**, **`aegisai[redis]`** (shared idempotency + rate limits across replicas).
 
 ---
 
@@ -106,6 +106,7 @@ Simple carousel view (open one slide at a time):
 | **13** | Durable jobs | Added disk-backed persisted job/request state + startup recovery for queued/running jobs |
 | **14** | Distributed controls | Added idempotency payload fingerprint checks, Redis-backed distributed cancellation path, and retry/dead-letter counters |
 | **15** | Resilience observability | Added Ollama retry/backoff wrappers, request-id log context, and latency p95/p99 metrics |
+| **16** | Security governance | Added JWT/API-key auth modes, optional protected ops endpoints, and role-aware hybrid policy controls |
 
 Scene-based video sampling, DLP prototype, and Helm chart are in-tree; see [tasks.md](tasks.md).
 

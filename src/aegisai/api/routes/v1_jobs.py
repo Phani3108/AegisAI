@@ -156,7 +156,8 @@ async def create_job(
     idempotency_key: str | None = Header(default=None, alias="Idempotency-Key"),
 ) -> JobCreateResponse:
     policy: RoutingPolicy = request.app.state.policy
-    if body.mode == "hybrid" and not policy.allows_hybrid(body.sensitivity_label):
+    roles = [str(x) for x in (getattr(request.state, "user_roles", None) or [])]
+    if body.mode == "hybrid" and not policy.allows_hybrid_for_roles(body.sensitivity_label, roles):
         raise HTTPException(
             status_code=400,
             detail=(
