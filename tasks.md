@@ -41,6 +41,13 @@
 - [x] **`GET /v1/jobs/{id}/events`** — SSE job event stream until terminal status
 - [x] **`output_schema`** on jobs → Ollama JSON mode + `result.structured.parsed` ([`job_runner`](src/aegisai/services/job_runner.py))
 
+## Phase 4 — Cancellation, WebSocket, QA gate
+
+- [x] **`POST /v1/jobs/{id}/cancel`** + cooperative worker checks ([`job_cancel`](src/aegisai/services/job_cancel.py), [`job_runner`](src/aegisai/services/job_runner.py))
+- [x] **WebSocket** `/v1/ws/jobs/{id}` ([`v1_jobs`](src/aegisai/api/routes/v1_jobs.py))
+- [x] Prometheus **`jobs_cancelled_total`** + per-pipeline cancelled series
+- [x] **`scripts/qa_verify.sh`** + CI runs full QA (ruff, pytest -v, ci_gate, compileall, build)
+
 ---
 
 ## Backlog / ideas (not committed)

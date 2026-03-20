@@ -17,9 +17,10 @@ from aegisai.schemas.jobs import (
     JobRequest,
     JobResult,
     JobStatus,
+    JobStatusResponse,
     LatencyBreakdownMs,
 )
-from aegisai.services import job_store, metrics
+from aegisai.services import job_cancel, job_store, metrics
 
 
 def _has_input(body: JobRequest, t: InputType) -> bool:
@@ -61,6 +62,44 @@ def _structured_with_optional_json(
     return out
 
 
+async def _apply_client_cancel(
+    job_id: str,
+    body: JobRequest,
+    route: str,
+    fallback: JobStatusResponse,
+) -> None:
+    await job_cancel.clear(job_id)
+    now = job_store.utcnow()
+    curj = (await job_store.get_job(job_id)) or fallback
+    await job_store.patch_job(
+        job_id,
+        status=JobStatus.cancelled,
+        updated_at=now,
+        events=curj.events
+        + [
+            JobEvent(
+                ts=now,
+                stage="pipeline",
+                message="cancelled by client",
+                route=route,
+            )
+        ],
+    )
+    await metrics.record_job_cancelled(metrics.infer_pipeline_kind(body))
+
+
+async def _cancel_if_requested(
+    job_id: str,
+    body: JobRequest,
+    route: str,
+    fallback: JobStatusResponse,
+) -> bool:
+    if not await job_cancel.is_requested(job_id):
+        return False
+    await _apply_client_cancel(job_id, body, route, fallback)
+    return True
+
+
 async def execute_job(
     job_id: str,
     body: JobRequest,
@@ -73,6 +112,10 @@ async def execute_job(
     if cur is None:
         return
     route = cur.route
+
+    if await _cancel_if_requested(job_id, body, route, cur):
+        return
+
     await job_store.patch_job(
         job_id,
         status=JobStatus.running,
@@ -103,9 +146,25 @@ async def execute_job(
             ],
         )
 
+    if await _cancel_if_requested(
+        job_id,
+        body,
+        route,
+        (await job_store.get_job(job_id)) or cur,
+    ):
+        return
+
     ollama = OllamaClient(settings.ollama_base_url, http, timeout_s=settings.ollama_timeout_s)
 
     try:
+        if await _cancel_if_requested(
+            job_id,
+            body,
+            route,
+            (await job_store.get_job(job_id)) or cur,
+        ):
+            return
+
         if _has_rag_collection(body):
             if chroma is None:
                 raise RuntimeError("Chroma client unavailable")
@@ -153,6 +212,14 @@ async def execute_job(
         if _media_conflict(body):
             raise ValueError("use only one of video_ref, image_ref, document_ref per job")
 
+        if await _cancel_if_requested(
+            job_id,
+            body,
+            route,
+            (await job_store.get_job(job_id)) or cur,
+        ):
+            return
+
         if _has_input(body, InputType.video_ref):
             result = await run_video_pipeline(
                 body,
@@ -192,6 +259,14 @@ async def execute_job(
                 ],
             )
             await _record_success(body, latency)
+            return
+
+        if await _cancel_if_requested(
+            job_id,
+            body,
+            route,
+            (await job_store.get_job(job_id)) or cur,
+        ):
             return
 
         if _has_input(body, InputType.document_ref):
@@ -234,6 +309,14 @@ async def execute_job(
             await _record_success(body, latency)
             return
 
+        if await _cancel_if_requested(
+            job_id,
+            body,
+            route,
+            (await job_store.get_job(job_id)) or cur,
+        ):
+            return
+
         if not _has_input(body, InputType.image_ref):
             raise ValueError(
                 "job needs image_ref, video_ref, document_ref, or rag_collection + text"
@@ -269,6 +352,14 @@ async def execute_job(
         )
         await _record_success(body, latency)
     except Exception as e:
+        if await job_cancel.is_requested(job_id):
+            await _apply_client_cancel(
+                job_id,
+                body,
+                route,
+                (await job_store.get_job(job_id)) or cur,
+            )
+            return
         await metrics.record_job_failed(metrics.infer_pipeline_kind(body))
         failed = job_store.utcnow()
         cur4 = (await job_store.get_job(job_id)) or cur

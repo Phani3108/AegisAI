@@ -64,6 +64,12 @@ Chroma files live under `AEGISAI_CHROMA_PERSIST_DIR` (default `data/chroma`).
 - **`GET /v1/jobs/{job_id}/events`** — **SSE** of new **`JobEvent`** rows until the job finishes (`data: [DONE]`). Poll-based (~200ms); use for lightweight progress without WebSockets.
 - **`output_schema` on `JobRequest`** — when set, the final LLM step uses Ollama **`format: json`**; successful parses appear under `result.structured.parsed`, with **`parse_error`** if the model output is not valid JSON.
 
+### Phase 4 — cancellation + WebSocket progress + QA gate
+
+- **`POST /v1/jobs/{job_id}/cancel`** — sets a cooperative cancel flag; the worker stops before heavy pipeline steps and marks **`cancelled`** (metrics: **`jobs_cancelled_total`** / per-pipeline **`cancelled`**).
+- **`GET .../v1/ws/jobs/{job_id}`** (WebSocket) — JSON messages `{type: event|done|error, ...}` for the same event stream shape as SSE (poll-based server side).
+- **Local / CI QA:** run **`bash scripts/qa_verify.sh`** (ruff, verbose pytest + timings, `ci_gate`, `compileall`, `build`). GitHub Actions runs this script per matrix Python version.
+
 ### OpenTelemetry (optional)
 
 ```bash

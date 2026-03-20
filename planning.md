@@ -259,4 +259,4 @@ Phased approach to avoid overbuilding:
 
 ---
 
-*Last updated: Phase 3 sketch (sync /v1/query, job SSE events, output_schema → Ollama JSON).*
+*Last updated: Phase 4 (job cancel + WebSocket progress + unified QA script in CI).*

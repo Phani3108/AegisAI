@@ -6,7 +6,17 @@ from datetime import UTC, datetime
 from typing import Any
 
 import httpx
-from fastapi import APIRouter, BackgroundTasks, Header, HTTPException, Query, Request, Response
+from fastapi import (
+    APIRouter,
+    BackgroundTasks,
+    Header,
+    HTTPException,
+    Query,
+    Request,
+    Response,
+    WebSocket,
+    WebSocketDisconnect,
+)
 from fastapi.responses import StreamingResponse
 
 from aegisai.config import Settings, get_settings
@@ -22,6 +32,7 @@ from aegisai.schemas.jobs import (
     JobStatusResponse,
 )
 from aegisai.services import job_store
+from aegisai.services.job_cancel import request_cancel
 from aegisai.services.job_concurrency import get_limiter
 from aegisai.services.job_runner import execute_job
 
@@ -187,6 +198,55 @@ async def get_job(job_id: str) -> JobStatusResponse:
     if job is None:
         raise HTTPException(status_code=404, detail="job not found")
     return job
+
+
+@router.post("/jobs/{job_id}/cancel")
+async def cancel_job(job_id: str) -> dict[str, Any]:
+    """Request cooperative cancellation; the worker observes before heavy pipeline steps."""
+    job = await job_store.get_job(job_id)
+    if job is None:
+        raise HTTPException(status_code=404, detail="job not found")
+    if job.status in (JobStatus.succeeded, JobStatus.failed, JobStatus.cancelled):
+        return {
+            "job_id": job_id,
+            "status": job.status.value,
+            "cancel_requested": False,
+        }
+    await request_cancel(job_id)
+    return {
+        "job_id": job_id,
+        "status": job.status.value,
+        "cancel_requested": True,
+    }
+
+
+@router.websocket("/ws/jobs/{job_id}")
+async def websocket_job_events(websocket: WebSocket, job_id: str) -> None:
+    """WS stream of job events (poll); ends with type ``done`` (same idea as SSE)."""
+    await websocket.accept()
+    try:
+        last_n = 0
+        while True:
+            job = await job_store.get_job(job_id)
+            if job is None:
+                await websocket.send_json({"type": "error", "detail": "not_found"})
+                break
+            if len(job.events) > last_n:
+                for ev in job.events[last_n:]:
+                    await websocket.send_json(
+                        {"type": "event", "data": ev.model_dump(mode="json")}
+                    )
+                last_n = len(job.events)
+            if job.status in (
+                JobStatus.succeeded,
+                JobStatus.failed,
+                JobStatus.cancelled,
+            ):
+                await websocket.send_json({"type": "done", "status": job.status.value})
+                break
+            await asyncio.sleep(0.2)
+    except WebSocketDisconnect:
+        pass
 
 
 @router.get("/jobs/{job_id}/events")

@@ -60,6 +60,12 @@ Append-only chronological record. Each entry: **date**, **user prompt (summary)*
 - **Actions:** Added `tests/test_e2e_deep.py` (Chroma+RAG job flow + mocked image job), `scripts/verify_e2e.sh`, dev deps `pytest-cov`, `build`; ran **ruff**, **compileall**, **15 pytest** tests, **`python -m build`** (sdist+wheel OK). Added **MIT** `LICENSE`, README repo link + verify script section. Initialized git in project dir, `main` branch, pushed to `origin` (https://github.com/Phani3108/AegisAI).
 - **Files:** `tests/test_e2e_deep.py`, `scripts/verify_e2e.sh`, `pyproject.toml`, `LICENSE`, `README.md`, `tasks.md`, `LOG.md`
 
+### Entry 14 — Phase 4: cancel, WebSocket events, metrics, QA script
+
+- **Prompt summary:** Next phases with thorough QA after completion and push to GitHub.
+- **Actions:** **`job_cancel`** cooperative cancellation; **`POST /v1/jobs/{id}/cancel`**; worker checkpoints + exception path honors cancel; **`GET /v1/ws/jobs/{id}`** WebSocket event stream; **`jobs_cancelled_total`** + Prometheus by-pipeline cancelled; **`scripts/qa_verify.sh`** (ruff, pytest -v --durations, ci_gate, compileall, build); **`.github/workflows/ci.yml`** runs QA script; tests [`tests/test_phase4_cancel_ws.py`](tests/test_phase4_cancel_ws.py); conftest resets cancel flags. Ran full **`qa_verify.sh`** locally (37 passed).
+- **Files:** `src/aegisai/services/job_cancel.py`, `src/aegisai/services/job_runner.py`, `src/aegisai/services/metrics.py`, `src/aegisai/api/routes/v1_jobs.py`, `tests/conftest.py`, `tests/test_metrics_api.py`, `tests/test_phase4_cancel_ws.py`, `scripts/qa_verify.sh`, `.github/workflows/ci.yml`, `README.md`, `tasks.md`, `LOG.md`
+
 ### Entry 13 — Phase 3: /v1/query, job SSE, output_schema JSON
 
 - **Prompt summary:** Next phases — real-time / bounded APIs per planning.

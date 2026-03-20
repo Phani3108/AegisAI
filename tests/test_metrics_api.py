@@ -13,8 +13,10 @@ def test_metrics_json_and_prometheus_empty() -> None:
     with TestClient(app) as client:
         j = client.get("/v1/metrics").json()
         assert j["jobs_completed_total"] == 0
+        assert j.get("jobs_cancelled_total", 0) == 0
         p = client.get("/v1/metrics", params={"format": "prometheus"}).text
         assert "aegisai_jobs_completed_total 0" in p
+        assert "aegisai_jobs_cancelled_total 0" in p
         p2 = client.get("/metrics").text
         assert "aegisai_jobs_completed_total 0" in p2
 
@@ -23,7 +25,9 @@ def test_metrics_increments_on_job(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
 ) -> None:
-    async def fake_chat(self, model: str, messages: list, *, stream: bool = False):
+    async def fake_chat(
+        self, model: str, messages: list, *, stream: bool = False, **_kw: object
+    ):
         _ = model, messages, stream
         return {"message": {"content": "x"}, "prompt_eval_count": 1, "eval_count": 1}
 

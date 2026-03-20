@@ -10,6 +10,7 @@ _lock = asyncio.Lock()
 _state: dict[str, Any] = {
     "jobs_completed_total": 0,
     "jobs_failed_total": 0,
+    "jobs_cancelled_total": 0,
     "by_pipeline": {},
     "latency_ms_sum": 0,
     "latency_ms_count": 0,
@@ -26,7 +27,7 @@ class Pipeline:
 def _ensure_pipeline(name: str) -> dict[str, int]:
     bp = _state["by_pipeline"]
     if name not in bp:
-        bp[name] = {"completed": 0, "failed": 0}
+        bp[name] = {"completed": 0, "failed": 0, "cancelled": 0}
     return bp[name]
 
 
@@ -47,11 +48,19 @@ async def record_job_failed(pipeline: str) -> None:
         p["failed"] += 1
 
 
+async def record_job_cancelled(pipeline: str) -> None:
+    async with _lock:
+        _state["jobs_cancelled_total"] += 1
+        p = _ensure_pipeline(pipeline)
+        p["cancelled"] += 1
+
+
 async def reset_for_tests() -> None:
     """Reset counters (intended for pytest)."""
     async with _lock:
         _state["jobs_completed_total"] = 0
         _state["jobs_failed_total"] = 0
+        _state["jobs_cancelled_total"] = 0
         _state["by_pipeline"] = {}
         _state["latency_ms_sum"] = 0
         _state["latency_ms_count"] = 0
@@ -67,6 +76,7 @@ async def snapshot() -> dict[str, Any]:
         return {
             "jobs_completed_total": _state["jobs_completed_total"],
             "jobs_failed_total": _state["jobs_failed_total"],
+            "jobs_cancelled_total": _state["jobs_cancelled_total"],
             "by_pipeline": {k: dict(v) for k, v in _state["by_pipeline"].items()},
             "latency_ms_avg": avg,
             "latency_ms_observations": _state["latency_ms_count"],
@@ -105,6 +115,9 @@ def render_prometheus(snap: dict[str, Any]) -> str:
     lines.append("# HELP aegisai_jobs_failed_total Failed async jobs.")
     lines.append("# TYPE aegisai_jobs_failed_total counter")
     lines.append(f"aegisai_jobs_failed_total {snap['jobs_failed_total']}")
+    lines.append("# HELP aegisai_jobs_cancelled_total Cancelled async jobs.")
+    lines.append("# TYPE aegisai_jobs_cancelled_total counter")
+    lines.append(f"aegisai_jobs_cancelled_total {snap.get('jobs_cancelled_total', 0)}")
     for pipe, d in snap.get("by_pipeline", {}).items():
         safe = pipe.replace("\\", "_").replace('"', "_")
         lines.append(
@@ -112,6 +125,9 @@ def render_prometheus(snap: dict[str, Any]) -> str:
         )
         lines.append(
             f'aegisai_jobs_failed_by_pipeline{{pipeline="{safe}"}} {d.get("failed", 0)}'
+        )
+        lines.append(
+            f'aegisai_jobs_cancelled_by_pipeline{{pipeline="{safe}"}} {d.get("cancelled", 0)}'
         )
     avg = snap.get("latency_ms_avg")
     if avg is not None:
