@@ -8,6 +8,8 @@ import sys
 from datetime import UTC, datetime
 from typing import Any
 
+from aegisai.services.request_context import get_request_id
+
 
 class JsonLogFormatter(logging.Formatter):
     """One JSON object per line."""
@@ -22,6 +24,8 @@ class JsonLogFormatter(logging.Formatter):
         if record.exc_info:
             payload["exc_info"] = self.formatException(record.exc_info)
         rid = getattr(record, "request_id", None)
+        if not rid:
+            rid = get_request_id()
         if rid:
             payload["request_id"] = rid
         return json.dumps(payload, default=str)

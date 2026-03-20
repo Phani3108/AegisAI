@@ -89,6 +89,11 @@ Append-only chronological record. Each entry: **date**, **user prompt (summary)*
 - **Prompt summary:** Continue forward plan with distributed idempotency/cancel semantics and retry/dead-letter behavior.
 - **Actions:** Added request-payload hash protection for idempotency key reuse (`409` on mismatch) in [`v1_jobs`](src/aegisai/api/routes/v1_jobs.py) + [`job_store`](src/aegisai/services/job_store.py), added Redis-backed distributed cancellation in [`job_cancel`](src/aegisai/services/job_cancel.py), added transient retry wrapper + dead-letter marking and new counters in [`metrics`](src/aegisai/services/metrics.py), with configurable retry attempts in [`config`](src/aegisai/config.py). Full QA gate passed (52 tests).
 
+### Entry 26 — Phase 15: resilience + observability uplift
+
+- **Prompt summary:** Continue forward plan phase for transient retries and better observability.
+- **Actions:** Added Ollama retry/backoff settings and wrappers in [`ollama/client.py`](src/aegisai/ollama/client.py) + [`config`](src/aegisai/config.py), wired retry options into query/stream/collections/readiness/pipeline callers, added p95/p99 latency metrics plus retry/dead-letter counters in [`metrics`](src/aegisai/services/metrics.py), and added request-id context propagation for JSON logs via [`request_context`](src/aegisai/services/request_context.py), [`request_id` middleware](src/aegisai/middleware/request_id.py), and [`logging_json`](src/aegisai/logging_json.py). Full QA gate passed (52 tests).
+
 ### Entry 19 — Phase 9: OpenAPI polish, integrator kit, demo UI, optional Redis
 
 - **Prompt summary:** Implement attached plan (planning §9, OpenAPI, .http + SDK doc, demo UI, Redis idempotency/rate limit).

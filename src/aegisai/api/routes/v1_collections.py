@@ -75,7 +75,13 @@ async def ingest_documents_route(
     chroma = _chroma(request)
     settings = request.app.state.settings
     http = request.app.state.http
-    ollama = OllamaClient(settings.ollama_base_url, http, timeout_s=settings.ollama_timeout_s)
+    ollama = OllamaClient(
+        settings.ollama_base_url,
+        http,
+        timeout_s=settings.ollama_timeout_s,
+        retry_attempts=settings.ollama_retry_attempts,
+        retry_backoff_s=settings.ollama_retry_backoff_s,
+    )
     items = [(d.id, d.text, d.metadata) for d in body.documents]
     n = await upsert_documents(chroma, name, settings, ollama, items)
     safe = sanitize_collection_name(name)

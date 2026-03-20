@@ -29,6 +29,8 @@ async def sync_query(request: Request, body: StreamChatRequest) -> dict:
         settings.ollama_base_url,
         http,
         timeout_s=settings.query_timeout_s,
+        retry_attempts=settings.ollama_retry_attempts,
+        retry_backoff_s=settings.ollama_retry_backoff_s,
     )
     try:
         return await ollama.chat(body.model, body.to_ollama_messages())

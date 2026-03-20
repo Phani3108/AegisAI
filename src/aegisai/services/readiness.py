@@ -24,7 +24,13 @@ def _ensure_chroma_writable(chroma_dir: Path) -> None:
 async def readiness_details(settings: Settings, http: httpx.AsyncClient) -> dict[str, object]:
     """Raises on failure (ollama unreachable, chroma not writable)."""
     _ensure_chroma_writable(settings.chroma_persist_dir)
-    ollama = OllamaClient(settings.ollama_base_url, http, timeout_s=10.0)
+    ollama = OllamaClient(
+        settings.ollama_base_url,
+        http,
+        timeout_s=10.0,
+        retry_attempts=settings.ollama_retry_attempts,
+        retry_backoff_s=settings.ollama_retry_backoff_s,
+    )
     data = await ollama.tags()
     raw_models = data.get("models") or []
     names: list[str] = []

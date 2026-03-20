@@ -154,7 +154,13 @@ async def execute_job(
     ):
         return
 
-    ollama = OllamaClient(settings.ollama_base_url, http, timeout_s=settings.ollama_timeout_s)
+    ollama = OllamaClient(
+        settings.ollama_base_url,
+        http,
+        timeout_s=settings.ollama_timeout_s,
+        retry_attempts=settings.ollama_retry_attempts,
+        retry_backoff_s=settings.ollama_retry_backoff_s,
+    )
 
     try:
         if await _cancel_if_requested(

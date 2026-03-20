@@ -115,6 +115,13 @@
 - [x] Distributed cancellation path using Redis when configured ([`job_cancel`](src/aegisai/services/job_cancel.py))
 - [x] Retry/dead-letter counters and transient retry wrapper in job guard ([`v1_jobs`](src/aegisai/api/routes/v1_jobs.py), [`metrics`](src/aegisai/services/metrics.py), [`config`](src/aegisai/config.py))
 
+## Phase 15 — Resilience + observability upgrades
+
+- [x] Ollama retry/backoff settings and client wrappers ([`config`](src/aegisai/config.py), [`ollama/client.py`](src/aegisai/ollama/client.py))
+- [x] Retry settings propagated to query/stream/collections/readiness and pipeline runner
+- [x] Added latency p95/p99 plus retry/dead-letter metrics in Prometheus ([`metrics`](src/aegisai/services/metrics.py))
+- [x] Request-id context propagation in JSON logs ([`request_id` middleware](src/aegisai/middleware/request_id.py), [`logging_json`](src/aegisai/logging_json.py))
+
 ---
 
 ## Backlog / ideas (not committed)

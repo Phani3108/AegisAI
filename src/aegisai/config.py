@@ -94,6 +94,18 @@ class Settings(BaseSettings):
         le=5,
         description="Retry attempts for transient job failures before dead-letter marking.",
     )
+    ollama_retry_attempts: int = Field(
+        default=2,
+        ge=0,
+        le=5,
+        description="Retry attempts for transient Ollama transport/5xx failures.",
+    )
+    ollama_retry_backoff_s: float = Field(
+        default=0.35,
+        ge=0.0,
+        le=5.0,
+        description="Base backoff for Ollama retries (seconds), multiplied by attempt.",
+    )
 
 
 def get_settings() -> Settings:

@@ -32,7 +32,13 @@ async def stream_chat(request: Request, body: StreamChatRequest) -> StreamingRes
     """SSE proxy of Ollama `/api/chat` with `stream: true` (NDJSON lines as `data:` events)."""
     settings = request.app.state.settings
     http = request.app.state.http
-    ollama = OllamaClient(settings.ollama_base_url, http, timeout_s=settings.ollama_timeout_s)
+    ollama = OllamaClient(
+        settings.ollama_base_url,
+        http,
+        timeout_s=settings.ollama_timeout_s,
+        retry_attempts=settings.ollama_retry_attempts,
+        retry_backoff_s=settings.ollama_retry_backoff_s,
+    )
 
     async def gen():
         try:

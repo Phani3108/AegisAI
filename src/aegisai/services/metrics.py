@@ -17,6 +17,7 @@ _state: dict[str, Any] = {
     "by_pipeline": {},
     "latency_ms_sum": 0,
     "latency_ms_count": 0,
+    "latency_ms_samples": [],
 }
 
 
@@ -40,8 +41,13 @@ async def record_job_completed(pipeline: str, total_latency_ms: int | None = Non
         p = _ensure_pipeline(pipeline)
         p["completed"] += 1
         if total_latency_ms is not None and total_latency_ms >= 0:
-            _state["latency_ms_sum"] += int(total_latency_ms)
+            val = int(total_latency_ms)
+            _state["latency_ms_sum"] += val
             _state["latency_ms_count"] += 1
+            samples = _state["latency_ms_samples"]
+            samples.append(val)
+            if len(samples) > 2048:
+                del samples[: len(samples) - 2048]
 
 
 async def record_job_failed(pipeline: str) -> None:
@@ -85,6 +91,7 @@ async def reset_for_tests() -> None:
         _state["by_pipeline"] = {}
         _state["latency_ms_sum"] = 0
         _state["latency_ms_count"] = 0
+        _state["latency_ms_samples"] = []
 
 
 async def snapshot() -> dict[str, Any]:
@@ -92,8 +99,16 @@ async def snapshot() -> dict[str, Any]:
 
     async with _lock:
         avg = None
+        p95 = None
+        p99 = None
         if _state["latency_ms_count"] > 0:
             avg = _state["latency_ms_sum"] / _state["latency_ms_count"]
+            s = sorted(_state["latency_ms_samples"])
+            if s:
+                i95 = max(0, min(len(s) - 1, int(len(s) * 0.95) - 1))
+                i99 = max(0, min(len(s) - 1, int(len(s) * 0.99) - 1))
+                p95 = float(s[i95])
+                p99 = float(s[i99])
         return {
             "jobs_completed_total": _state["jobs_completed_total"],
             "jobs_failed_total": _state["jobs_failed_total"],
@@ -103,6 +118,8 @@ async def snapshot() -> dict[str, Any]:
             "jobs_dead_letter_total": _state["jobs_dead_letter_total"],
             "by_pipeline": {k: dict(v) for k, v in _state["by_pipeline"].items()},
             "latency_ms_avg": avg,
+            "latency_ms_p95": p95,
+            "latency_ms_p99": p99,
             "latency_ms_observations": _state["latency_ms_count"],
             "jobs_in_flight": get_limiter().in_flight,
         }
@@ -173,6 +190,16 @@ def render_prometheus(snap: dict[str, Any]) -> str:
         )
         lines.append("# TYPE aegisai_job_latency_ms_avg gauge")
         lines.append(f"aegisai_job_latency_ms_avg {float(avg):.6f}")
+    p95 = snap.get("latency_ms_p95")
+    if p95 is not None:
+        lines.append("# HELP aegisai_job_latency_ms_p95 P95 of summed stage latencies (ms).")
+        lines.append("# TYPE aegisai_job_latency_ms_p95 gauge")
+        lines.append(f"aegisai_job_latency_ms_p95 {float(p95):.6f}")
+    p99 = snap.get("latency_ms_p99")
+    if p99 is not None:
+        lines.append("# HELP aegisai_job_latency_ms_p99 P99 of summed stage latencies (ms).")
+        lines.append("# TYPE aegisai_job_latency_ms_p99 gauge")
+        lines.append(f"aegisai_job_latency_ms_p99 {float(p99):.6f}")
     inflight = snap.get("jobs_in_flight")
     if inflight is not None:
         lines.append("# HELP aegisai_jobs_in_flight Jobs accepted but pipeline not finished yet.")

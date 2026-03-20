@@ -262,4 +262,4 @@ Phased approach to avoid overbuilding:
 
 ---
 
-*Last updated: Phase 14 (distributed idempotency/cancel semantics + retry/dead-letter counters — see [tasks.md](tasks.md)).*
+*Last updated: Phase 15 (resilience wrappers + richer metrics/log correlation — see [tasks.md](tasks.md)).*
