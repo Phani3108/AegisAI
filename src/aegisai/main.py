@@ -1,4 +1,3 @@
-import logging
 from contextlib import asynccontextmanager
 
 import chromadb
@@ -15,16 +14,15 @@ from aegisai.api.routes import (
     v1_stream,
 )
 from aegisai.config import get_settings
+from aegisai.logging_json import configure_logging
 from aegisai.middleware.api_key import APIKeyMiddleware
 from aegisai.middleware.request_id import RequestIdMiddleware
 from aegisai.policy.loader import load_routing_policy
 from aegisai.services.job_concurrency import configure_limiter
 from aegisai.telemetry.otel import maybe_instrument
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s %(levelname)s %(name)s %(message)s",
-)
+_cfg0 = get_settings()
+configure_logging(json_lines=_cfg0.log_json)
 
 
 @asynccontextmanager
@@ -62,5 +60,4 @@ app.include_router(v1_stream.router, prefix="/v1", tags=["stream"])
 app.include_router(v1_query.router, prefix="/v1", tags=["query"])
 app.include_router(v1_metrics.router, prefix="/v1", tags=["metrics"])
 
-_cfg = get_settings()
-maybe_instrument(app, _cfg.otel_enabled)
+maybe_instrument(app, _cfg0.otel_enabled)

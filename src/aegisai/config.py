@@ -63,6 +63,10 @@ class Settings(BaseSettings):
         default=True,
         description="If DLP finds patterns and mode is hybrid, reject job creation (400).",
     )
+    log_json: bool = Field(
+        default=False,
+        description="Emit one JSON object per log line on stderr (for Loki/ELK/K8s).",
+    )
 
 
 def get_settings() -> Settings:

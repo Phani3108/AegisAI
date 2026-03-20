@@ -21,6 +21,7 @@ from fastapi.responses import StreamingResponse
 
 from aegisai.config import Settings, get_settings
 from aegisai.dlp.scan import scan_request_text
+from aegisai.middleware.ws_auth import websocket_shared_secret_authorized
 from aegisai.ollama.client import OllamaClient
 from aegisai.policy.routing import RoutingPolicy
 from aegisai.schemas.jobs import (
@@ -223,6 +224,10 @@ async def cancel_job(job_id: str) -> dict[str, Any]:
 @router.websocket("/ws/jobs/{job_id}")
 async def websocket_job_events(websocket: WebSocket, job_id: str) -> None:
     """WS stream of job events (poll); ends with type ``done`` (same idea as SSE)."""
+    settings_ws: Settings = websocket.app.state.settings
+    if not websocket_shared_secret_authorized(websocket, settings_ws.api_key):
+        await websocket.close(code=4401, reason="unauthorized")
+        return
     await websocket.accept()
     try:
         last_n = 0

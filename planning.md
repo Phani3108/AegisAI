@@ -259,4 +259,4 @@ Phased approach to avoid overbuilding:
 
 ---
 
-*Last updated: Phase 5 (Docker/Compose, /version, README as product doc).*
+*Last updated: Phase 6 (JSON logs, WS API-key parity, CI Docker build).*

@@ -29,3 +29,12 @@ jobs:
 
       - name: Full QA (ruff, pytest verbose, gate, compileall, build)
         run: bash scripts/qa_verify.sh
+
+  docker-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Build container image
+        run: docker build -t aegisai:ci .

@@ -55,6 +55,13 @@
 - [x] **`GET /version`** — package version; exempt from optional API key (with `/health`)
 - [x] **README** — full TOC, API table, env table, Docker + QA ([README.md](README.md))
 
+## Phase 6 — Operations polish
+
+- [x] **`AEGISAI_LOG_JSON`** — newline-delimited JSON logs ([`logging_json.py`](src/aegisai/logging_json.py))
+- [x] **WebSocket shared-secret** — Bearer / `X-API-Key` / `?api_key=` ([`ws_auth.py`](src/aegisai/middleware/ws_auth.py), [`v1_jobs`](src/aegisai/api/routes/v1_jobs.py))
+- [x] **CI `docker-build` job** — verify image build ([`.github/workflows/ci.yml`](.github/workflows/ci.yml))
+- [x] Tests [`tests/test_phase6_ws_auth.py`](tests/test_phase6_ws_auth.py)
+
 ---
 
 ## Backlog / ideas (not committed)

@@ -48,6 +48,7 @@
 | **3** | Real-time UX | `POST /v1/query`, job SSE `/v1/jobs/{id}/events`, `output_schema` → JSON |
 | **4** | Control | `POST .../cancel`, WebSocket `/v1/ws/jobs/{id}`, cancel metrics, **`scripts/qa_verify.sh`** in CI |
 | **5** | Packaging | **Dockerfile**, **docker-compose** (Ollama + app), **`GET /version`** |
+| **6** | Ops polish | **`AEGISAI_LOG_JSON`**, WebSocket API-key parity (header / query), **Docker build in CI** |
 
 Scene-based video sampling, DLP prototype, and Helm chart are in-tree; see [tasks.md](tasks.md).
 
@@ -197,7 +198,7 @@ python benchmarks/run_v0.py /absolute/path/to/image.png --question "Summarize vi
 | GET | `/v1/jobs/{id}` | Job status + events + result |
 | POST | `/v1/jobs/{id}/cancel` | Request cooperative cancellation |
 | GET | `/v1/jobs/{id}/events` | SSE job event stream → `[DONE]` |
-| WS | `/v1/ws/jobs/{id}` | WebSocket job events → `{type: done}` |
+| WS | `/v1/ws/jobs/{id}` | WebSocket job events → `{type: done}` (if `AEGISAI_API_KEY` is set: same Bearer / `X-API-Key` as HTTP, or `?api_key=` on the query string) |
 | GET | `/v1/jobs/{id}/audit` | Events JSON; `?format=ndjson` |
 | POST | `/v1/stream/chat` | SSE stream to Ollama |
 | POST | `/v1/query` | Sync non-streaming chat |
@@ -245,6 +246,7 @@ All settings use the **`AEGISAI_`** prefix (see [.env.example](.env.example)).
 | `AEGISAI_MAX_CONCURRENT_JOBS` | `8` | Parallel jobs; extra → **429** |
 | `AEGISAI_DLP_ENABLED` | `false` | Regex scan on hybrid job text inputs |
 | `AEGISAI_DLP_BLOCK_HYBRID` | `true` | **400** if patterns match on hybrid |
+| `AEGISAI_LOG_JSON` | `false` | One JSON object per log line on **stderr** (aggregation-friendly) |
 
 ---
 
@@ -260,6 +262,7 @@ All settings use the **`AEGISAI_`** prefix (see [.env.example](.env.example)).
 ## Observability
 
 - **`X-Request-ID`** on responses.
+- **Structured logs** — set **`AEGISAI_LOG_JSON=true`** for newline-delimited JSON on stderr (set at process start; useful in Kubernetes / Loki / Datadog).
 - **Prometheus** — `GET /metrics` and `GET /v1/metrics?format=prometheus` (completions, failures, **cancellations**, per-pipeline, latency average, in-flight gauge).
 - **Optional OTEL** — `aegisai[otel]` and `AEGISAI_OTEL_ENABLED=true`.
 
@@ -291,7 +294,7 @@ PYTHON=.venv/bin/python3 bash scripts/qa_verify.sh
 
 **Legacy helper:** [scripts/verify_e2e.sh](scripts/verify_e2e.sh) if present.
 
-GitHub Actions runs **`scripts/qa_verify.sh`** on Python **3.11** and **3.12**.
+GitHub Actions runs **`scripts/qa_verify.sh`** on Python **3.11** and **3.12**, and a separate job **`docker build`** to verify the **Dockerfile** on Ubuntu.
 
 **Container image check** (requires Docker daemon):
 

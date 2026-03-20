@@ -60,6 +60,12 @@ Append-only chronological record. Each entry: **date**, **user prompt (summary)*
 - **Actions:** Added `tests/test_e2e_deep.py` (Chroma+RAG job flow + mocked image job), `scripts/verify_e2e.sh`, dev deps `pytest-cov`, `build`; ran **ruff**, **compileall**, **15 pytest** tests, **`python -m build`** (sdist+wheel OK). Added **MIT** `LICENSE`, README repo link + verify script section. Initialized git in project dir, `main` branch, pushed to `origin` (https://github.com/Phani3108/AegisAI).
 - **Files:** `tests/test_e2e_deep.py`, `scripts/verify_e2e.sh`, `pyproject.toml`, `LICENSE`, `README.md`, `tasks.md`, `LOG.md`
 
+### Entry 16 — Phase 6: JSON logging, WebSocket API key, CI docker-build
+
+- **Prompt summary:** Continue next phases; QA and push.
+- **Actions:** **`AEGISAI_LOG_JSON`** + `configure_logging` / `JsonLogFormatter`; **`websocket_shared_secret_authorized`** before WS accept (4401 on mismatch); **`.github/workflows/ci.yml`** `docker-build` job (`docker build`); **tests/test_phase6_ws_auth.py**; README + `.env.example` + tasks/planning. **`qa_verify.sh`:** 41 passed.
+- **Files:** `src/aegisai/logging_json.py`, `src/aegisai/config.py`, `src/aegisai/main.py`, `src/aegisai/middleware/ws_auth.py`, `src/aegisai/api/routes/v1_jobs.py`, `.github/workflows/ci.yml`, `.env.example`, `tests/test_phase6_ws_auth.py`, `README.md`, `tasks.md`, `LOG.md`, `planning.md`
+
 ### Entry 15 — Phase 5: Docker, Compose, /version, README overhaul
 
 - **Prompt summary:** Next phase + thorough QA + push; README updated properly.
