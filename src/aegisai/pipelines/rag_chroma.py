@@ -59,6 +59,7 @@ async def run_chroma_rag_pipeline(
         evidence_title="retrieved excerpts from Chroma collection",
         evidence_text=context,
         user_question=user_question,
+        output_schema=request.output_schema,
     )
     llm_ms = int((time.perf_counter() - t1) * 1000)
 

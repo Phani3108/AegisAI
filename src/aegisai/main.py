@@ -5,7 +5,15 @@ import chromadb
 import httpx
 from fastapi import FastAPI
 
-from aegisai.api.routes import health, ops_metrics, v1_collections, v1_jobs, v1_metrics, v1_stream
+from aegisai.api.routes import (
+    health,
+    ops_metrics,
+    v1_collections,
+    v1_jobs,
+    v1_metrics,
+    v1_query,
+    v1_stream,
+)
 from aegisai.config import get_settings
 from aegisai.middleware.api_key import APIKeyMiddleware
 from aegisai.middleware.request_id import RequestIdMiddleware
@@ -51,6 +59,7 @@ app.include_router(ops_metrics.router, tags=["metrics"])
 app.include_router(v1_jobs.router, prefix="/v1", tags=["jobs"])
 app.include_router(v1_collections.router, prefix="/v1", tags=["collections"])
 app.include_router(v1_stream.router, prefix="/v1", tags=["stream"])
+app.include_router(v1_query.router, prefix="/v1", tags=["query"])
 app.include_router(v1_metrics.router, prefix="/v1", tags=["metrics"])
 
 _cfg = get_settings()

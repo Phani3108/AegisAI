@@ -259,4 +259,4 @@ Phased approach to avoid overbuilding:
 
 ---
 
-*Last updated: Phase 2 T1-lite + backlog (scene-based video sampling, DLP hybrid prototype, audit NDJSON, Helm sketch).*
+*Last updated: Phase 3 sketch (sync /v1/query, job SSE events, output_schema → Ollama JSON).*

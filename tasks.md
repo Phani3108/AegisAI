@@ -35,6 +35,12 @@
 - [x] **`Idempotency-Key`** on `POST /v1/jobs` (in-memory dedupe)
 - [x] Benchmark harness in-package [`aegisai.benchmarks.image_v0`](src/aegisai/benchmarks/image_v0.py) + CI test
 
+## Phase 3 — Real-time / bounded APIs (planning §4.1, §6)
+
+- [x] **`POST /v1/query`** — sync bounded chat (`AEGISAI_QUERY_TIMEOUT_S`)
+- [x] **`GET /v1/jobs/{id}/events`** — SSE job event stream until terminal status
+- [x] **`output_schema`** on jobs → Ollama JSON mode + `result.structured.parsed` ([`job_runner`](src/aegisai/services/job_runner.py))
+
 ---
 
 ## Backlog / ideas (not committed)

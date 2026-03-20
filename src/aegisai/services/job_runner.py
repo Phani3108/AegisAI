@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from typing import Any
 
 import httpx
@@ -43,6 +44,21 @@ async def _record_success(body: JobRequest, latency: LatencyBreakdownMs | None) 
         metrics.infer_pipeline_kind(body),
         metrics.latency_total_ms(latency),
     )
+
+
+def _structured_with_optional_json(
+    body: JobRequest,
+    answer_text: str,
+    base: dict[str, Any],
+) -> dict[str, Any]:
+    out = dict(base)
+    if body.output_schema:
+        out["json_mode"] = True
+        try:
+            out["parsed"] = json.loads(answer_text)
+        except json.JSONDecodeError:
+            out["parse_error"] = "invalid_json"
+    return out
 
 
 async def execute_job(
@@ -108,12 +124,16 @@ async def execute_job(
                 updated_at=done,
                 result=JobResult(
                     text=result.answer,
-                    structured={
-                        "collection": coll,
-                        "chunk_count": result.chunk_count,
-                        "embed_model": result.embed_model,
-                        "store": "chroma",
-                    },
+                    structured=_structured_with_optional_json(
+                        body,
+                        result.answer,
+                        {
+                            "collection": coll,
+                            "chunk_count": result.chunk_count,
+                            "embed_model": result.embed_model,
+                            "store": "chroma",
+                        },
+                    ),
                 ),
                 events=cur3.events
                 + [
@@ -153,7 +173,11 @@ async def execute_job(
                 updated_at=done,
                 result=JobResult(
                     text=result.answer,
-                    structured={"frame_count": result.frame_count},
+                    structured=_structured_with_optional_json(
+                        body,
+                        result.answer,
+                        {"frame_count": result.frame_count},
+                    ),
                 ),
                 events=cur3.events
                 + [
@@ -185,11 +209,15 @@ async def execute_job(
                 updated_at=done,
                 result=JobResult(
                     text=result.answer,
-                    structured={
-                        "chunk_count": result.chunk_count,
-                        "embed_model": result.embed_model,
-                        "store": "ephemeral",
-                    },
+                    structured=_structured_with_optional_json(
+                        body,
+                        result.answer,
+                        {
+                            "chunk_count": result.chunk_count,
+                            "embed_model": result.embed_model,
+                            "store": "ephemeral",
+                        },
+                    ),
                 ),
                 events=cur3.events
                 + [
@@ -223,7 +251,10 @@ async def execute_job(
             job_id,
             status=JobStatus.succeeded,
             updated_at=done,
-            result=JobResult(text=result.answer),
+            result=JobResult(
+                text=result.answer,
+                structured=_structured_with_optional_json(body, result.answer, {}),
+            ),
             events=cur3.events
             + [
                 JobEvent(

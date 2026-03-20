@@ -70,6 +70,7 @@ async def run_image_pipeline(
         evidence_title="image description",
         evidence_text=vision_text,
         user_question=user_question,
+        output_schema=request.output_schema,
     )
     llm_ms = int((time.perf_counter() - t1) * 1000)
 

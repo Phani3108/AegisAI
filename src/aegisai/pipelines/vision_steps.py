@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Any
+
 from aegisai.ollama.client import OllamaClient
 
 VISION_PROMPT_IMAGE = (
@@ -36,13 +38,25 @@ async def llm_answer_from_evidence(
     evidence_title: str,
     evidence_text: str,
     user_question: str,
+    output_schema: dict[str, Any] | None = None,
 ) -> tuple[str, dict]:
     prompt = (
         f"Use only the following {evidence_title} to answer the user. "
         "If something is not supported by this evidence, say you cannot tell from the media.\n\n"
         f"{evidence_title}:\n{evidence_text}\n\nUser question:\n{user_question}"
     )
-    body = await ollama.chat(llm_model, [{"role": "user", "content": prompt}])
+    if output_schema:
+        prompt += (
+            "\n\nRespond with a single JSON object only (no markdown fences) "
+            "that best satisfies the user's question."
+        )
+        body = await ollama.chat(
+            llm_model,
+            [{"role": "user", "content": prompt}],
+            response_format="json",
+        )
+    else:
+        body = await ollama.chat(llm_model, [{"role": "user", "content": prompt}])
     return OllamaClient.message_content(body), body
 
 

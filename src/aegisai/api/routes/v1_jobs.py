@@ -1,3 +1,4 @@
+import asyncio
 import json
 import logging
 import uuid
@@ -6,6 +7,7 @@ from typing import Any
 
 import httpx
 from fastapi import APIRouter, BackgroundTasks, Header, HTTPException, Query, Request, Response
+from fastapi.responses import StreamingResponse
 
 from aegisai.config import Settings, get_settings
 from aegisai.dlp.scan import scan_request_text
@@ -185,6 +187,33 @@ async def get_job(job_id: str) -> JobStatusResponse:
     if job is None:
         raise HTTPException(status_code=404, detail="job not found")
     return job
+
+
+@router.get("/jobs/{job_id}/events")
+async def stream_job_events(job_id: str) -> StreamingResponse:
+    """SSE stream of new `JobEvent` rows until the job reaches a terminal status (poll-based)."""
+
+    async def gen():
+        last_n = 0
+        while True:
+            job = await job_store.get_job(job_id)
+            if job is None:
+                yield f"data: {json.dumps({'error': 'not_found'})}\n\n"
+                break
+            if len(job.events) > last_n:
+                for ev in job.events[last_n:]:
+                    yield f"data: {json.dumps(ev.model_dump(mode='json'), default=str)}\n\n"
+                last_n = len(job.events)
+            if job.status in (
+                JobStatus.succeeded,
+                JobStatus.failed,
+                JobStatus.cancelled,
+            ):
+                yield "data: [DONE]\n\n"
+                break
+            await asyncio.sleep(0.2)
+
+    return StreamingResponse(gen(), media_type="text/event-stream")
 
 
 @router.get("/jobs/{job_id}/audit", response_model=None)

@@ -23,6 +23,12 @@ class Settings(BaseSettings):
     rag_chunk_overlap: int = Field(default=64, ge=0, le=2048)
     rag_top_k: int = Field(default=4, ge=1, le=32)
     ollama_timeout_s: float = Field(default=600.0)
+    query_timeout_s: float = Field(
+        default=120.0,
+        ge=1.0,
+        le=600.0,
+        description="HTTP timeout for synchronous POST /v1/query (bounded chat).",
+    )
     media_root: Path | None = Field(
         default=None,
         description="If set, image file:// paths must resolve under this directory.",

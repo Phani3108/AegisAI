@@ -94,6 +94,7 @@ async def run_video_pipeline(
         evidence_title="video frame descriptions (sampled)",
         evidence_text=evidence,
         user_question=user_question,
+        output_schema=request.output_schema,
     )
     llm_ms = int((time.perf_counter() - t_llm) * 1000)
 

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import AsyncIterator
+from typing import Any
 
 import httpx
 
@@ -24,10 +25,14 @@ class OllamaClient:
         messages: list[dict],
         *,
         stream: bool = False,
+        response_format: str | None = None,
     ) -> dict:
+        payload: dict[str, Any] = {"model": model, "messages": messages, "stream": stream}
+        if response_format:
+            payload["format"] = response_format
         r = await self._http.post(
             f"{self._base}/api/chat",
-            json={"model": model, "messages": messages, "stream": stream},
+            json=payload,
             timeout=self._timeout,
         )
         r.raise_for_status()

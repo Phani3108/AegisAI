@@ -100,6 +100,7 @@ async def run_rag_pipeline(
         evidence_title="retrieved document excerpts",
         evidence_text=context,
         user_question=user_question,
+        output_schema=request.output_schema,
     )
     llm_ms = int((time.perf_counter() - t2) * 1000)
 

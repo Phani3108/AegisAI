@@ -60,6 +60,12 @@ Append-only chronological record. Each entry: **date**, **user prompt (summary)*
 - **Actions:** Added `tests/test_e2e_deep.py` (Chroma+RAG job flow + mocked image job), `scripts/verify_e2e.sh`, dev deps `pytest-cov`, `build`; ran **ruff**, **compileall**, **15 pytest** tests, **`python -m build`** (sdist+wheel OK). Added **MIT** `LICENSE`, README repo link + verify script section. Initialized git in project dir, `main` branch, pushed to `origin` (https://github.com/Phani3108/AegisAI).
 - **Files:** `tests/test_e2e_deep.py`, `scripts/verify_e2e.sh`, `pyproject.toml`, `LICENSE`, `README.md`, `tasks.md`, `LOG.md`
 
+### Entry 13 — Phase 3: /v1/query, job SSE, output_schema JSON
+
+- **Prompt summary:** Next phases — real-time / bounded APIs per planning.
+- **Actions:** **`POST /v1/query`** with `query_timeout_s`; **`GET /v1/jobs/{id}/events`** SSE (poll); **`OllamaClient.chat(response_format=...)`**; **`llm_answer_from_evidence`** + all pipelines pass `output_schema`; **`_structured_with_optional_json`** on job results; tests [`tests/test_phase3.py`](tests/test_phase3.py). Docs: README, `.env.example`, `tasks.md`.
+- **Files:** `src/aegisai/config.py`, `src/aegisai/ollama/client.py`, `src/aegisai/pipelines/vision_steps.py`, `src/aegisai/pipelines/image.py`, `src/aegisai/pipelines/video_job.py`, `src/aegisai/pipelines/rag.py`, `src/aegisai/pipelines/rag_chroma.py`, `src/aegisai/services/job_runner.py`, `src/aegisai/api/routes/v1_query.py`, `src/aegisai/api/routes/v1_jobs.py`, `src/aegisai/main.py`, `tests/test_phase3.py`, `README.md`, `.env.example`, `tasks.md`, `LOG.md`
+
 ### Entry 12 — Backlog: scene keyframes, DLP hybrid, audit NDJSON, Helm
 
 - **Prompt summary:** Continue with the rest of backlog changes.

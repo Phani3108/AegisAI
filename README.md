@@ -58,6 +58,12 @@ Chroma files live under `AEGISAI_CHROMA_PERSIST_DIR` (default `data/chroma`).
 
 `POST /v1/stream/chat` accepts `{ "model": "llama3.2", "messages": [{ "role": "user", "content": "Hi" }] }` and returns **Server-Sent Events** streaming Ollama’s NDJSON lines (ends with `data: [DONE]`). Use for real-time UX without waiting for full job completion.
 
+### Phase 3 — sync query + job progress SSE + structured answers
+
+- **`POST /v1/query`** — synchronous, non-streaming Ollama `/api/chat` (same body shape as `/v1/stream/chat`: `model` + `messages`). Uses **`AEGISAI_QUERY_TIMEOUT_S`** (default 120s), not the long job timeout.
+- **`GET /v1/jobs/{job_id}/events`** — **SSE** of new **`JobEvent`** rows until the job finishes (`data: [DONE]`). Poll-based (~200ms); use for lightweight progress without WebSockets.
+- **`output_schema` on `JobRequest`** — when set, the final LLM step uses Ollama **`format: json`**; successful parses appear under `result.structured.parsed`, with **`parse_error`** if the model output is not valid JSON.
+
 ### OpenTelemetry (optional)
 
 ```bash
