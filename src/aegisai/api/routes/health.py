@@ -1,6 +1,5 @@
 from importlib.metadata import PackageNotFoundError, version
 
-import httpx
 from fastapi import APIRouter, HTTPException, Request
 
 from aegisai.api.openapi_extra import common_error_responses
@@ -35,9 +34,9 @@ def live() -> dict[str, str]:
 async def ready(request: Request) -> dict[str, object]:
     """Readiness: Ollama + Chroma dir; no API key (use as kube readinessProbe)."""
     settings = request.app.state.settings
-    http: httpx.AsyncClient = request.app.state.http
+    inference = request.app.state.inference
     try:
-        return await readiness_details(settings, http)
+        return await readiness_details(settings, inference)
     except Exception as e:
         raise HTTPException(status_code=503, detail=f"not ready: {e!s}") from e
 

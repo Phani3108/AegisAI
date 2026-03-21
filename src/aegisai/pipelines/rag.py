@@ -5,7 +5,7 @@ import time
 from dataclasses import dataclass
 
 from aegisai.config import Settings
-from aegisai.ollama.client import OllamaClient
+from aegisai.inference.protocol import InferenceBackend
 from aegisai.pipelines.io_util import resolve_file_uri
 from aegisai.pipelines.vision_steps import llm_answer_from_evidence, merge_token_hints
 from aegisai.schemas.jobs import InputType, JobInput, JobRequest
@@ -66,7 +66,7 @@ def cosine_similarity(a: list[float], b: list[float]) -> float:
 async def run_rag_pipeline(
     request: JobRequest,
     settings: Settings,
-    ollama: OllamaClient,
+    ollama: InferenceBackend,
 ) -> RagPipelineResult:
     t0 = time.perf_counter()
     uri = _first_document_uri(request.inputs)

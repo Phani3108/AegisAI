@@ -13,6 +13,10 @@ class Settings(BaseSettings):
     )
 
     ollama_base_url: str = Field(default="http://127.0.0.1:11434")
+    inference_backend: str = Field(
+        default="ollama",
+        description="Inference driver: ollama (default); more backends planned for scale-out.",
+    )
     vision_model: str = Field(default="llava")
     llm_model: str = Field(default="llama3.2")
     embed_model: str = Field(

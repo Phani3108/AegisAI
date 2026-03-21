@@ -109,5 +109,6 @@ class OllamaClient:
 
     @staticmethod
     def message_content(body: dict) -> str:
-        msg = body.get("message") or {}
-        return (msg.get("content") or "").strip()
+        from aegisai.inference.messages import chat_message_content
+
+        return chat_message_content(body)

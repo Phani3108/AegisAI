@@ -4,7 +4,7 @@ import time
 from dataclasses import dataclass
 
 from aegisai.config import Settings
-from aegisai.ollama.client import OllamaClient
+from aegisai.inference.protocol import InferenceBackend
 from aegisai.pipelines.io_util import file_to_image_base64, resolve_file_uri
 from aegisai.pipelines.vision_steps import (
     VISION_PROMPT_IMAGE,
@@ -45,7 +45,7 @@ def _first_image_uri(inputs: list[JobInput]) -> str:
 async def run_image_pipeline(
     request: JobRequest,
     settings: Settings,
-    ollama: OllamaClient,
+    ollama: InferenceBackend,
 ) -> ImagePipelineResult:
     t_ingest = time.perf_counter()
     uri = _first_image_uri(request.inputs)

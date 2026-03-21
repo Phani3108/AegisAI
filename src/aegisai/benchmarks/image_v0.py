@@ -9,7 +9,7 @@ from typing import Any
 import httpx
 
 from aegisai.config import Settings, get_settings
-from aegisai.ollama.client import OllamaClient
+from aegisai.inference.factory import create_inference_backend
 from aegisai.pipelines.image import run_image_pipeline
 from aegisai.schemas.jobs import InputType, JobInput, JobRequest
 
@@ -33,7 +33,7 @@ async def run_image_benchmark(
     t0 = time.perf_counter()
 
     async def _run(c: httpx.AsyncClient) -> dict[str, Any]:
-        ollama = OllamaClient(settings.ollama_base_url, c, timeout_s=settings.ollama_timeout_s)
+        ollama = create_inference_backend(settings, c)
         out = await run_image_pipeline(body, settings, ollama)
         wall_ms = int((time.perf_counter() - t0) * 1000)
         return {

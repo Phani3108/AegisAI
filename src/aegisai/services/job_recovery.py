@@ -4,9 +4,9 @@ import asyncio
 import logging
 from typing import Any
 
-import httpx
 from fastapi import FastAPI
 
+from aegisai.inference.protocol import InferenceBackend
 from aegisai.services import job_store
 from aegisai.services.job_runner import execute_job
 
@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 async def resume_incomplete_jobs(app: FastAPI) -> None:
     settings = app.state.settings
-    http: httpx.AsyncClient = app.state.http
+    inference: InferenceBackend = app.state.inference
     chroma: Any = getattr(app.state, "chroma", None)
     pending = await job_store.list_recoverable_jobs()
     if not pending:
@@ -26,5 +26,5 @@ async def resume_incomplete_jobs(app: FastAPI) -> None:
         req = await job_store.get_job_request(jid)
         if req is None:
             continue
-        asyncio.create_task(execute_job(jid, req, settings, http, chroma))
+        asyncio.create_task(execute_job(jid, req, settings, inference, chroma))
         await asyncio.sleep(0.02)

@@ -20,7 +20,7 @@ def test_ready_ok(monkeypatch: pytest.MonkeyPatch) -> None:
     async def fake_tags(self):
         return {"models": [{"name": "llama"}]}
 
-    monkeypatch.setattr("aegisai.services.readiness.OllamaClient.tags", fake_tags)
+    monkeypatch.setattr("aegisai.ollama.client.OllamaClient.tags", fake_tags)
     with TestClient(app) as client:
         r = client.get("/ready")
         assert r.status_code == 200
@@ -35,7 +35,7 @@ def test_ready_503_when_ollama_fails(monkeypatch: pytest.MonkeyPatch) -> None:
     async def boom(self):
         raise RuntimeError("ollama down")
 
-    monkeypatch.setattr("aegisai.services.readiness.OllamaClient.tags", boom)
+    monkeypatch.setattr("aegisai.ollama.client.OllamaClient.tags", boom)
     with TestClient(app) as client:
         r = client.get("/ready")
         assert r.status_code == 503
@@ -47,7 +47,7 @@ def test_v1_ready_same_payload_with_auth(monkeypatch: pytest.MonkeyPatch) -> Non
         return {"models": [{"name": "x"}]}
 
     monkeypatch.setenv("AEGISAI_API_KEY", "gate-key")
-    monkeypatch.setattr("aegisai.services.readiness.OllamaClient.tags", fake_tags)
+    monkeypatch.setattr("aegisai.ollama.client.OllamaClient.tags", fake_tags)
 
     async def run() -> None:
         transport = ASGITransport(app=app)
@@ -68,7 +68,7 @@ def test_probes_exempt_when_api_key_set(monkeypatch: pytest.MonkeyPatch) -> None
         return {"models": []}
 
     monkeypatch.setenv("AEGISAI_API_KEY", "k")
-    monkeypatch.setattr("aegisai.services.readiness.OllamaClient.tags", fake_tags)
+    monkeypatch.setattr("aegisai.ollama.client.OllamaClient.tags", fake_tags)
     with TestClient(app) as client:
         assert client.get("/live").status_code == 200
         assert client.get("/ready").status_code == 200

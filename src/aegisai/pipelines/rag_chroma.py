@@ -7,7 +7,7 @@ from typing import Any
 import chromadb
 
 from aegisai.config import Settings
-from aegisai.ollama.client import OllamaClient
+from aegisai.inference.protocol import InferenceBackend
 from aegisai.pipelines.rag import RagPipelineResult, pick_user_question
 from aegisai.pipelines.vision_steps import llm_answer_from_evidence, merge_token_hints
 from aegisai.rag_store.names import sanitize_collection_name
@@ -17,7 +17,7 @@ from aegisai.schemas.jobs import JobRequest
 async def run_chroma_rag_pipeline(
     request: JobRequest,
     settings: Settings,
-    ollama: OllamaClient,
+    ollama: InferenceBackend,
     chroma: chromadb.PersistentClient,
 ) -> RagPipelineResult:
     name = (request.rag_collection or "").strip()

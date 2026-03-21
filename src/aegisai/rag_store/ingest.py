@@ -6,7 +6,7 @@ from typing import Any
 import chromadb
 
 from aegisai.config import Settings
-from aegisai.ollama.client import OllamaClient
+from aegisai.inference.protocol import InferenceBackend
 from aegisai.pipelines.rag import chunk_text
 from aegisai.rag_store.names import sanitize_collection_name
 
@@ -30,7 +30,7 @@ async def upsert_documents(
     chroma: chromadb.PersistentClient,
     collection_name: str,
     settings: Settings,
-    ollama: OllamaClient,
+    ollama: InferenceBackend,
     items: list[tuple[str, str, dict[str, Any] | None]],
 ) -> int:
     """

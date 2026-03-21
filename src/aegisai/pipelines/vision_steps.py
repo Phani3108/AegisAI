@@ -2,7 +2,8 @@ from __future__ import annotations
 
 from typing import Any
 
-from aegisai.ollama.client import OllamaClient
+from aegisai.inference.messages import chat_message_content
+from aegisai.inference.protocol import InferenceBackend
 
 VISION_PROMPT_IMAGE = (
     "Describe this image factually and in detail. Include visible text, UI elements, "
@@ -19,7 +20,7 @@ def frame_prompt(frame_index: int, frame_total: int) -> str:
 
 
 async def vision_single_shot(
-    ollama: OllamaClient,
+    ollama: InferenceBackend,
     model: str,
     image_b64: str,
     content: str,
@@ -28,11 +29,11 @@ async def vision_single_shot(
         model,
         [{"role": "user", "content": content, "images": [image_b64]}],
     )
-    return OllamaClient.message_content(body), body
+    return chat_message_content(body), body
 
 
 async def llm_answer_from_evidence(
-    ollama: OllamaClient,
+    ollama: InferenceBackend,
     llm_model: str,
     *,
     evidence_title: str,
@@ -57,7 +58,7 @@ async def llm_answer_from_evidence(
         )
     else:
         body = await ollama.chat(llm_model, [{"role": "user", "content": prompt}])
-    return OllamaClient.message_content(body), body
+    return chat_message_content(body), body
 
 
 def merge_token_hints(*bodies: dict) -> tuple[int | None, int | None]:

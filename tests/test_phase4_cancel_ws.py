@@ -10,6 +10,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from aegisai.config import Settings
+from aegisai.inference.factory import create_inference_backend
 from aegisai.main import app
 from aegisai.ollama.client import OllamaClient
 from aegisai.schemas.jobs import (
@@ -73,7 +74,8 @@ async def test_execute_job_respects_pre_cancel_flag() -> None:
     settings = Settings(ollama_base_url="http://noop")
     transport = httpx.MockTransport(lambda r: httpx.Response(500))
     async with httpx.AsyncClient(transport=transport) as http:
-        await execute_job(jid, body, settings, http, None)
+        inference = create_inference_backend(settings, http)
+        await execute_job(jid, body, settings, inference, None)
 
     final = await job_store.get_job(jid)
     assert final is not None

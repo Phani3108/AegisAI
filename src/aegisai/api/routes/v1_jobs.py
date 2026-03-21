@@ -6,7 +6,6 @@ import uuid
 from datetime import UTC, datetime
 from typing import Any
 
-import httpx
 from fastapi import (
     APIRouter,
     BackgroundTasks,
@@ -23,6 +22,7 @@ from fastapi.responses import StreamingResponse
 from aegisai.api.openapi_extra import common_error_responses
 from aegisai.config import Settings, get_settings
 from aegisai.dlp.scan import scan_request_text
+from aegisai.inference.protocol import InferenceBackend
 from aegisai.middleware.ws_auth import websocket_shared_secret_authorized
 from aegisai.policy.routing import RoutingPolicy
 from aegisai.schemas.jobs import (
@@ -59,14 +59,14 @@ async def _execute_job_guarded(
     job_id: str,
     body: JobRequest,
     settings: Settings,
-    http: httpx.AsyncClient,
+    inference: InferenceBackend,
     chroma: Any,
 ) -> None:
     try:
         max_attempts = int(settings.job_retry_attempts) + 1
         for attempt in range(1, max_attempts + 1):
             await job_store.increment_attempt(job_id)
-            await execute_job(job_id, body, settings, http, chroma)
+            await execute_job(job_id, body, settings, inference, chroma)
             cur = await job_store.get_job(job_id)
             if cur is None or cur.status != JobStatus.failed:
                 return
@@ -120,9 +120,9 @@ def _utcnow() -> datetime:
 async def ready_v1(request: Request) -> dict[str, object]:
     """Same as GET /ready but under /v1 (requires API key when AEGISAI_API_KEY is set)."""
     settings = request.app.state.settings
-    http = request.app.state.http
+    inference = request.app.state.inference
     try:
-        return await readiness_details(settings, http)
+        return await readiness_details(settings, inference)
     except Exception as e:
         raise HTTPException(status_code=503, detail=f"not ready: {e!s}") from e
 
@@ -209,7 +209,7 @@ async def create_job(
 
     job_id = str(uuid.uuid4())
     settings = request.app.state.settings
-    http = request.app.state.http
+    inference = request.app.state.inference
     chroma = getattr(request.app.state, "chroma", None)
 
     try:
@@ -265,7 +265,7 @@ async def create_job(
         body.sensitivity_label,
     )
 
-    background_tasks.add_task(_execute_job_guarded, job_id, body, settings, http, chroma)
+    background_tasks.add_task(_execute_job_guarded, job_id, body, settings, inference, chroma)
 
     return JobCreateResponse(job_id=job_id, status=JobStatus.queued)
 

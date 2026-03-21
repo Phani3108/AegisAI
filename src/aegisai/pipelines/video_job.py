@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from aegisai.config import Settings
-from aegisai.ollama.client import OllamaClient
+from aegisai.inference.protocol import InferenceBackend
 from aegisai.pipelines.io_util import file_to_image_base64, resolve_file_uri
 from aegisai.pipelines.video import extract_keyframes
 from aegisai.pipelines.vision_steps import (
@@ -51,7 +51,7 @@ def _first_video_uri(inputs: list[JobInput]) -> str:
 async def run_video_pipeline(
     request: JobRequest,
     settings: Settings,
-    ollama: OllamaClient,
+    ollama: InferenceBackend,
     *,
     sampling: SamplingPolicy | None = None,
 ) -> VideoPipelineResult:

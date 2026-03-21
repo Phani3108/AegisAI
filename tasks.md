@@ -141,11 +141,17 @@
 - [x] Added scale/failover validation runbook (`docs/operations/scale_validation.md`)
 - [x] Added release hardening checklist (`docs/operations/release_checklist.md`) and known limits section in README
 
+## Phase 19 — Inference abstraction (scale path)
+
+- [x] `InferenceBackend` protocol + `create_inference_backend` factory ([`src/aegisai/inference/`](src/aegisai/inference/)); Ollama as default adapter
+- [x] `app.state.inference` (job/stream/embed timeout) + `app.state.inference_query` (bounded `POST /v1/query`); pipelines + job runner + recovery + readiness use injected backend
+- [x] `AEGISAI_INFERENCE_BACKEND` in settings / `.env.example` (today: `ollama` only)
+
 ---
 
 ## Backlog / ideas (not committed)
 
-- [ ] **Strategy:** [docs/strategy/expansion_roadmap.md](docs/strategy/expansion_roadmap.md) — industries, S/M/L use cases, personas, integration map, phased P19+ (pick next phase to implement)
+- [ ] **Strategy:** [docs/strategy/expansion_roadmap.md](docs/strategy/expansion_roadmap.md) — industries, S/M/L use cases, personas, integration map; **next shipped phases: P20+** (second inference backend = P24 per roadmap)
 - [x] Scene detection for smarter video keyframes (`video_sampling.scene_detection` + ffmpeg)
 - [x] DLP integration prototype for hybrid mode ([`src/aegisai/dlp/scan.py`](src/aegisai/dlp/scan.py))
 - [x] K8s Helm chart (T2) — [`deploy/helm/aegisai`](deploy/helm/aegisai)

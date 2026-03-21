@@ -1,13 +1,11 @@
-"""Dependency checks for Kubernetes-style readiness (Ollama + Chroma persistence)."""
+"""Dependency checks for Kubernetes-style readiness (inference backend + Chroma persistence)."""
 
 from __future__ import annotations
 
 from pathlib import Path
 
-import httpx
-
 from aegisai.config import Settings
-from aegisai.ollama.client import OllamaClient
+from aegisai.inference.protocol import InferenceBackend
 
 
 def _ensure_chroma_writable(chroma_dir: Path) -> None:
@@ -21,17 +19,10 @@ def _ensure_chroma_writable(chroma_dir: Path) -> None:
         raise RuntimeError(msg) from e
 
 
-async def readiness_details(settings: Settings, http: httpx.AsyncClient) -> dict[str, object]:
-    """Raises on failure (ollama unreachable, chroma not writable)."""
+async def readiness_details(settings: Settings, inference: InferenceBackend) -> dict[str, object]:
+    """Raises on failure (inference unreachable, chroma not writable)."""
     _ensure_chroma_writable(settings.chroma_persist_dir)
-    ollama = OllamaClient(
-        settings.ollama_base_url,
-        http,
-        timeout_s=10.0,
-        retry_attempts=settings.ollama_retry_attempts,
-        retry_backoff_s=settings.ollama_retry_backoff_s,
-    )
-    data = await ollama.tags()
+    data = await inference.tags()
     raw_models = data.get("models") or []
     names: list[str] = []
     if isinstance(raw_models, list):

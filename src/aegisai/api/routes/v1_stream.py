@@ -6,7 +6,6 @@ from fastapi import APIRouter, Request
 from fastapi.responses import StreamingResponse
 
 from aegisai.api.openapi_extra import common_error_responses
-from aegisai.ollama.client import OllamaClient
 from aegisai.schemas.stream import StreamChatRequest
 
 router = APIRouter()
@@ -30,15 +29,7 @@ router = APIRouter()
 )
 async def stream_chat(request: Request, body: StreamChatRequest) -> StreamingResponse:
     """SSE proxy of Ollama `/api/chat` with `stream: true` (NDJSON lines as `data:` events)."""
-    settings = request.app.state.settings
-    http = request.app.state.http
-    ollama = OllamaClient(
-        settings.ollama_base_url,
-        http,
-        timeout_s=settings.ollama_timeout_s,
-        retry_attempts=settings.ollama_retry_attempts,
-        retry_backoff_s=settings.ollama_retry_backoff_s,
-    )
+    ollama = request.app.state.inference
 
     async def gen():
         try:

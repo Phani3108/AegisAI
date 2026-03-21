@@ -156,7 +156,7 @@ Phases are **ordered for dependency and risk**: deepen local core → integrator
 
 | Phase | Theme | Deliverables (examples) | Unlocks |
 |-------|--------|-------------------------|---------|
-| **P19** | **Inference abstraction** | `InferenceBackend` protocol; Ollama adapter only at first; feature flag second backend | Multi-model ops without API churn |
+| **P19** | **Inference abstraction** | ✅ `InferenceBackend` + factory; Ollama default via `AEGISAI_INFERENCE_BACKEND`; second adapter (e.g. cloud) in P24 | Multi-model ops without API churn |
 | **P20** | **Ingest connectors (read-only)** | S3/Blob fetcher + virus-scan hook stub; batch `POST /v1/collections/.../documents` improvements | Medium use cases without file:// only |
 | **P21** | **ASR path** | Optional `audio_ref` or video→transcript stage; store segments in events | Media / education adjacency |
 | **P22** | **Webhook / callback** | `callback_url` on job (signed); retry policy | n8n, Slack, CI |

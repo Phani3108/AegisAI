@@ -4,6 +4,16 @@ Append-only chronological record. Each entry: **date**, **user prompt (summary)*
 
 ---
 
+## 2026-03-20 (later)
+
+### Entry — P19 inference abstraction wiring
+
+- **Prompt summary:** Continue building at scale — complete Phase P19 inference abstraction integration.
+- **Actions:** Wired `create_inference_backend` in app lifespan (`app.state.inference`, `app.state.inference_query`); `execute_job` and recovery take `InferenceBackend`; readiness + `/v1/*` routes use shared backends; pipelines / ingest / benchmark use protocol types; `OllamaClient.message_content` delegates to `chat_message_content`; added `inference_backend` setting + `.env.example`; tests patch `OllamaClient.tags` at client module; docs/tasks/roadmap updated.
+- **Files:** `src/aegisai/main.py`, `services/job_runner.py`, `services/job_recovery.py`, `services/readiness.py`, `api/routes/{health,v1_jobs,v1_query,v1_stream,v1_collections}.py`, `pipelines/{image,video_job,rag,rag_chroma,vision_steps}.py`, `rag_store/ingest.py`, `benchmarks/image_v0.py`, `inference/factory.py`, `ollama/client.py`, `config.py`, `.env.example`, `tests/test_phase4_cancel_ws.py`, `tests/test_phase7_probes.py`, `tasks.md`, `docs/strategy/expansion_roadmap.md`, `LOG.md`
+
+---
+
 ## 2026-03-20
 
 ### Entry 1 — Initial vision (session start)

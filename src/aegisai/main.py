@@ -15,6 +15,7 @@ from aegisai.api.routes import (
     v1_stream,
 )
 from aegisai.config import get_settings
+from aegisai.inference.factory import create_inference_backend
 from aegisai.logging_json import configure_logging
 from aegisai.middleware.api_key import APIKeyMiddleware
 from aegisai.middleware.rate_limit import RateLimitMiddleware
@@ -52,6 +53,10 @@ async def lifespan(app: FastAPI):
             app.state.http = client
             app.state.policy = policy
             app.state.chroma = chroma_client
+            app.state.inference = create_inference_backend(settings, client)
+            app.state.inference_query = create_inference_backend(
+                settings, client, chat_timeout_s=settings.query_timeout_s
+            )
             await resume_incomplete_jobs(app)
             yield
     finally:

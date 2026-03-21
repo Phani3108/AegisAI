@@ -315,6 +315,7 @@ All settings use the **`AEGISAI_`** prefix (see [.env.example](.env.example)).
 | Variable | Default | Meaning |
 |----------|---------|---------|
 | `AEGISAI_OLLAMA_BASE_URL` | `http://127.0.0.1:11434` | Ollama base URL |
+| `AEGISAI_INFERENCE_BACKEND` | `ollama` | Inference driver (extensible; today only **ollama**) |
 | `AEGISAI_VISION_MODEL` | `llava` | Vision model |
 | `AEGISAI_LLM_MODEL` | `llama3.2` | Text model for answer step |
 | `AEGISAI_EMBED_MODEL` | `nomic-embed-text` | Embeddings for RAG |

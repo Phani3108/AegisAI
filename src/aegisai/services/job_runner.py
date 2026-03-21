@@ -3,10 +3,8 @@ from __future__ import annotations
 import json
 from typing import Any
 
-import httpx
-
 from aegisai.config import Settings
-from aegisai.ollama.client import OllamaClient
+from aegisai.inference.protocol import InferenceBackend
 from aegisai.pipelines.image import run_image_pipeline
 from aegisai.pipelines.rag import run_rag_pipeline
 from aegisai.pipelines.rag_chroma import run_chroma_rag_pipeline
@@ -104,7 +102,7 @@ async def execute_job(
     job_id: str,
     body: JobRequest,
     settings: Settings,
-    http: httpx.AsyncClient,
+    inference: InferenceBackend,
     chroma: Any,
 ) -> None:
     now = job_store.utcnow()
@@ -154,14 +152,6 @@ async def execute_job(
     ):
         return
 
-    ollama = OllamaClient(
-        settings.ollama_base_url,
-        http,
-        timeout_s=settings.ollama_timeout_s,
-        retry_attempts=settings.ollama_retry_attempts,
-        retry_backoff_s=settings.ollama_retry_backoff_s,
-    )
-
     try:
         if await _cancel_if_requested(
             job_id,
@@ -174,7 +164,7 @@ async def execute_job(
         if _has_rag_collection(body):
             if chroma is None:
                 raise RuntimeError("Chroma client unavailable")
-            result = await run_chroma_rag_pipeline(body, settings, ollama, chroma)
+            result = await run_chroma_rag_pipeline(body, settings, inference, chroma)
             done = job_store.utcnow()
             cur3 = (await job_store.get_job(job_id)) or cur
             latency = LatencyBreakdownMs(
@@ -230,7 +220,7 @@ async def execute_job(
             result = await run_video_pipeline(
                 body,
                 settings,
-                ollama,
+                inference,
                 sampling=body.video_sampling,
             )
             done = job_store.utcnow()
@@ -276,7 +266,7 @@ async def execute_job(
             return
 
         if _has_input(body, InputType.document_ref):
-            result = await run_rag_pipeline(body, settings, ollama)
+            result = await run_rag_pipeline(body, settings, inference)
             done = job_store.utcnow()
             cur3 = (await job_store.get_job(job_id)) or cur
             latency = LatencyBreakdownMs(
@@ -328,7 +318,7 @@ async def execute_job(
                 "job needs image_ref, video_ref, document_ref, or rag_collection + text"
             )
 
-        result = await run_image_pipeline(body, settings, ollama)
+        result = await run_image_pipeline(body, settings, inference)
         done = job_store.utcnow()
         cur3 = (await job_store.get_job(job_id)) or cur
         latency = LatencyBreakdownMs(

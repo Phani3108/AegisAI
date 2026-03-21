@@ -7,7 +7,6 @@ import chromadb
 from fastapi import APIRouter, HTTPException, Request
 
 from aegisai.api.openapi_extra import common_error_responses
-from aegisai.ollama.client import OllamaClient
 from aegisai.rag_store.ingest import upsert_documents
 from aegisai.rag_store.names import sanitize_collection_name
 from aegisai.schemas.collections import (
@@ -74,14 +73,7 @@ async def ingest_documents_route(
 ) -> IngestResponse:
     chroma = _chroma(request)
     settings = request.app.state.settings
-    http = request.app.state.http
-    ollama = OllamaClient(
-        settings.ollama_base_url,
-        http,
-        timeout_s=settings.ollama_timeout_s,
-        retry_attempts=settings.ollama_retry_attempts,
-        retry_backoff_s=settings.ollama_retry_backoff_s,
-    )
+    ollama = request.app.state.inference
     items = [(d.id, d.text, d.metadata) for d in body.documents]
     n = await upsert_documents(chroma, name, settings, ollama, items)
     safe = sanitize_collection_name(name)
