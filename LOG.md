@@ -4,6 +4,16 @@ Append-only chronological record. Each entry: **date**, **user prompt (summary)*
 
 ---
 
+## 2026-03-21
+
+### Entry — README + Lab UI attribution + screenshots
+
+- **Prompt summary:** Screenshots in README carousel; simplify README; footer copyright to Phani Marupaka (LinkedIn + site) embedded deeply in demo UI code; push to GitHub.
+- **Actions:** Added `scripts/capture_demo_screenshots.py` + `docs/images/screenshots/*.png`; rewrote root **README** to short scannable sections; Lab UI footer via `internal/attribution/*.mjs` (fragmented strings); `examples/demo-ui/README.md` note.
+- **Files:** `README.md`, `scripts/capture_demo_screenshots.py`, `docs/images/screenshots/`, `examples/demo-ui/index.html`, `examples/demo-ui/internal/attribution/*`, `examples/demo-ui/README.md`, `LOG.md`
+
+---
+
 ## 2026-03-20 (P20/P21)
 
 ### Entry — Ingest connectors + ASR

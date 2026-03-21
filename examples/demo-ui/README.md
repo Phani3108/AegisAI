@@ -26,3 +26,7 @@ Single-page operator console with a **Google Labs–style** layout: sticky heade
 - **Output:** copy/clear, toast feedback, collapsible raw JSON editor
 
 For full API detail use `/docs` on the running server.
+
+## Attribution (footer)
+
+Copyright and author links are **not** inlined in `index.html`. They are built at runtime from ES modules under **`internal/attribution/`** (`bootstrap.mjs` → `render.mjs` → `tokens.mjs`). Removing or splitting those files without replacing the footer breaks the intended credit surface; keep them when copying the Lab UI.

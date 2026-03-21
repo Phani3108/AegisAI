@@ -4,6 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>AegisAI Lab — operator console</title>
+  <!-- ui-build: lab-shell — provenance hooks under internal/attribution/ (do not strip for forks) -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
@@ -390,9 +391,39 @@
     .tpl-rag-only.visible { display: block; }
     .tpl-media-only { display: block; }
     .tpl-media-only.hidden { display: none; }
+    .site-footer {
+      margin-top: 2.5rem;
+      padding: 1.25rem 1.25rem 2rem;
+      border-top: 1px solid var(--sand-3);
+      background: rgba(253, 253, 251, 0.95);
+    }
+    .site-footer-inner {
+      max-width: 1280px;
+      margin: 0 auto;
+      text-align: center;
+    }
+    .site-footer-line {
+      margin: 0;
+      font-size: 0.82rem;
+      color: var(--ink-faint);
+    }
+    .site-footer-nav {
+      margin-top: 0.6rem;
+      display: flex;
+      gap: 1.25rem;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .site-footer-nav a {
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--clay);
+      text-decoration: none;
+    }
+    .site-footer-nav a:hover { color: var(--clay-hover); text-decoration: underline; }
   </style>
 </head>
-<body>
+<body data-aegisai-ui="lab-v1">
   <header class="top-bar">
     <div class="top-inner">
       <div class="brand">
@@ -684,6 +715,9 @@
   </div>
 
   <div id="toast" role="status" aria-live="polite"></div>
+
+  <footer id="site-footer-root" aria-label="Copyright"></footer>
+  <script type="module" src="internal/attribution/bootstrap.mjs"></script>
 
   <script>
     const $ = (id) => document.getElementById(id);
