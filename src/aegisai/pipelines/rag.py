@@ -6,7 +6,7 @@ from dataclasses import dataclass
 
 from aegisai.config import Settings
 from aegisai.inference.protocol import InferenceBackend
-from aegisai.pipelines.io_util import resolve_file_uri
+from aegisai.pipelines.io_util import materialize_uri
 from aegisai.pipelines.vision_steps import llm_answer_from_evidence, merge_token_hints
 from aegisai.schemas.jobs import InputType, JobInput, JobRequest
 
@@ -70,13 +70,17 @@ async def run_rag_pipeline(
 ) -> RagPipelineResult:
     t0 = time.perf_counter()
     uri = _first_document_uri(request.inputs)
-    path = resolve_file_uri(uri, settings)
-    raw = path.read_text(encoding="utf-8", errors="replace")
-    user_question = pick_user_question(request.inputs)
-    chunks = chunk_text(raw, settings.rag_chunk_size, settings.rag_chunk_overlap)
-    if not chunks:
-        raise ValueError("document is empty or whitespace only")
-    ingest_ms = int((time.perf_counter() - t0) * 1000)
+    path, temps = await materialize_uri(uri, settings)
+    try:
+        raw = path.read_text(encoding="utf-8", errors="replace")
+        user_question = pick_user_question(request.inputs)
+        chunks = chunk_text(raw, settings.rag_chunk_size, settings.rag_chunk_overlap)
+        if not chunks:
+            raise ValueError("document is empty or whitespace only")
+        ingest_ms = int((time.perf_counter() - t0) * 1000)
+    finally:
+        for p in temps:
+            p.unlink(missing_ok=True)
 
     t1 = time.perf_counter()
     chunk_embeddings: list[tuple[str, list[float]]] = []

@@ -13,6 +13,7 @@ class InputType(StrEnum):
     image_ref = "image_ref"
     video_ref = "video_ref"
     document_ref = "document_ref"
+    audio_ref = "audio_ref"
     text = "text"
 
 
@@ -61,6 +62,13 @@ class JobRequest(BaseModel):
         default=None,
         description="Chroma collection for RAG-only jobs (needs text question; no media inputs).",
     )
+    video_transcribe: bool = Field(
+        default=False,
+        description=(
+            "If true, video_ref jobs extract audio and transcribe (no frame vision). "
+            "Requires ffmpeg; uses ASR stub or AEGISAI_ASR_HTTP_URL."
+        ),
+    )
 
     @field_validator("rag_collection", mode="before")
     @classmethod
@@ -80,14 +88,23 @@ class JobRequest(BaseModel):
                 InputType.image_ref,
                 InputType.video_ref,
                 InputType.document_ref,
+                InputType.audio_ref,
             ):
                 raise ValueError(
-                    "rag_collection cannot be combined with image_ref, video_ref, or document_ref"
+                    "rag_collection cannot be combined with image_ref, video_ref, "
+                    "document_ref, or audio_ref"
                 )
         if not any(
             inp.type == InputType.text and (inp.text or "").strip() for inp in self.inputs
         ):
             raise ValueError("rag_collection jobs require a non-empty text input (the question)")
+        return self
+
+    @model_validator(mode="after")
+    def _video_transcribe_rules(self) -> JobRequest:
+        if self.video_transcribe:
+            if not any(i.type == InputType.video_ref for i in self.inputs):
+                raise ValueError("video_transcribe requires a video_ref input")
         return self
 
 
@@ -104,6 +121,7 @@ class LatencyBreakdownMs(BaseModel):
     vision_ms: int | None = None
     llm_ms: int | None = None
     retrieval_ms: int | None = None
+    asr_ms: int | None = None
 
 
 class JobEvent(BaseModel):
@@ -115,6 +133,10 @@ class JobEvent(BaseModel):
     route: str | None = None
     models_used: list[str] | None = None
     latency: LatencyBreakdownMs | None = None
+    payload: dict[str, Any] | None = Field(
+        default=None,
+        description="Structured telemetry (e.g. ASR segment summaries); keep small.",
+    )
 
 
 class JobResult(BaseModel):

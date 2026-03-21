@@ -26,6 +26,7 @@ class Pipeline:
     ephemeral_rag = "ephemeral_rag"
     image = "image"
     video = "video"
+    asr = "asr"
 
 
 def _ensure_pipeline(name: str) -> dict[str, int]:
@@ -129,7 +130,7 @@ def latency_total_ms(lat: LatencyBreakdownMs | None) -> int | None:
     if lat is None:
         return None
     acc = 0
-    for field in ("ingest_ms", "vision_ms", "llm_ms", "retrieval_ms"):
+    for field in ("ingest_ms", "vision_ms", "llm_ms", "retrieval_ms", "asr_ms"):
         v = getattr(lat, field, None)
         if isinstance(v, int):
             acc += v
@@ -140,7 +141,9 @@ def infer_pipeline_kind(body: JobRequest) -> str:
     if body.rag_collection and str(body.rag_collection).strip():
         return Pipeline.chroma_rag
     if any(i.type == InputType.video_ref for i in body.inputs):
-        return Pipeline.video
+        return Pipeline.asr if body.video_transcribe else Pipeline.video
+    if any(i.type == InputType.audio_ref for i in body.inputs):
+        return Pipeline.asr
     if any(i.type == InputType.document_ref for i in body.inputs):
         return Pipeline.ephemeral_rag
     if any(i.type == InputType.image_ref for i in body.inputs):

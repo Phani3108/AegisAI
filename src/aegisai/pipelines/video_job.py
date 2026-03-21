@@ -8,7 +8,7 @@ from pathlib import Path
 
 from aegisai.config import Settings
 from aegisai.inference.protocol import InferenceBackend
-from aegisai.pipelines.io_util import file_to_image_base64, resolve_file_uri
+from aegisai.pipelines.io_util import file_to_image_base64, materialize_uri
 from aegisai.pipelines.video import extract_keyframes
 from aegisai.pipelines.vision_steps import (
     frame_prompt,
@@ -58,13 +58,15 @@ async def run_video_pipeline(
     policy = sampling or SamplingPolicy()
     t0 = time.perf_counter()
     uri = _first_video_uri(request.inputs)
-    video_path = resolve_file_uri(uri, settings)
+    video_path, fetch_temps = await materialize_uri(uri, settings)
     user_question = _pick_user_question(request.inputs)
 
     tmp = Path(tempfile.mkdtemp(prefix="aegisai_vid_"))
     descriptions: list[str] = []
     vision_bodies: list[dict] = []
     vision_ms = 0
+    total = 0
+    ingest_ms = 0
     try:
         frames = extract_keyframes(video_path, policy, tmp)
         ingest_ms = int((time.perf_counter() - t0) * 1000)
@@ -85,6 +87,8 @@ async def run_video_pipeline(
         vision_ms = int((time.perf_counter() - t_vis) * 1000)
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
+        for p in fetch_temps:
+            p.unlink(missing_ok=True)
 
     evidence = "\n\n".join(descriptions)
     t_llm = time.perf_counter()

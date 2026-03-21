@@ -50,12 +50,7 @@ def mock_embed_chat(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(OllamaClient, "chat", fake_chat)
 
 
-def test_chroma_ingest_and_rag_job(
-    mock_embed_chat: None,
-    monkeypatch: pytest.MonkeyPatch,
-    tmp_path,
-) -> None:
-    monkeypatch.setenv("AEGISAI_CHROMA_PERSIST_DIR", str(tmp_path / "chroma_data"))
+def test_chroma_ingest_and_rag_job(mock_embed_chat: None) -> None:
     with TestClient(app) as client:
         r0 = client.post("/v1/collections", json={"name": "knowledge_base"})
         assert r0.status_code == 200

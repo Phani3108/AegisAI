@@ -509,6 +509,8 @@
                 <option value="image">Vision — image_ref + question</option>
                 <option value="document">Document — document_ref + question</option>
                 <option value="video">Video — video_ref + question</option>
+                <option value="video_transcribe">Video — transcript only (video_transcribe)</option>
+                <option value="audio">Audio — audio_ref + optional question</option>
                 <option value="rag">RAG — Chroma collection + text question only</option>
               </select>
             </div>
@@ -531,7 +533,7 @@
             <div class="row">
               <div class="col" style="flex: 2; min-width: 220px;">
                 <label for="tplUri">Media URI (server path)</label>
-                <input id="tplUri" type="text" placeholder="file:///var/data/samples/photo.png" />
+                <input id="tplUri" type="text" placeholder="file:///var/data/samples/photo.png or .wav" />
               </div>
               <div class="col" style="flex: 2; min-width: 200px;">
                 <label for="tplQuestion">Question / instruction</label>
@@ -816,6 +818,13 @@
       $("mediaFields").classList.toggle("hidden", isRag);
       $("ragFields").classList.toggle("visible", isRag);
       $("videoBlock").hidden = kind !== "video";
+      if (kind === "video_transcribe") {
+        $("tplQuestion").placeholder = "Optional LLM question over transcript (leave blank for raw transcript)";
+      } else if (kind === "audio") {
+        $("tplQuestion").placeholder = "Optional question over transcript";
+      } else {
+        $("tplQuestion").placeholder = "";
+      }
     };
 
     const getJob = async () => {
@@ -940,22 +949,31 @@
         };
       } else {
         const uri = $("tplUri").value.trim();
-        const q = ($("tplQuestion").value || "").trim() || "Summarize.";
+        const qRaw = ($("tplQuestion").value || "").trim();
         if (!uri) {
           toast("Media URI required");
           show("Set a file:// URI the API host can read.", "build");
           return;
         }
-        const typed =
-          kind === "document" ? "document_ref" : kind === "video" ? "video_ref" : "image_ref";
+        let typed = "image_ref";
+        if (kind === "document") typed = "document_ref";
+        else if (kind === "video" || kind === "video_transcribe") typed = "video_ref";
+        else if (kind === "audio") typed = "audio_ref";
+
+        const inputs = [{ type: typed, uri }];
+        if (kind === "audio" || kind === "video_transcribe") {
+          if (qRaw) inputs.push({ type: "text", text: qRaw });
+        } else {
+          inputs.push({ type: "text", text: qRaw || "Summarize." });
+        }
         payload = {
-          inputs: [
-            { type: typed, uri },
-            { type: "text", text: q },
-          ],
+          inputs,
           sensitivity_label: sens,
           mode,
         };
+        if (kind === "video_transcribe") {
+          payload.video_transcribe = true;
+        }
         if (kind === "video") {
           const vs = { max_frames: Number($("vidMaxFrames").value) || 8 };
           const fpsv = $("vidFps").value;

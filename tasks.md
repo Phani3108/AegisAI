@@ -147,11 +147,26 @@
 - [x] `app.state.inference` (job/stream/embed timeout) + `app.state.inference_query` (bounded `POST /v1/query`); pipelines + job runner + recovery + readiness use injected backend
 - [x] `AEGISAI_INFERENCE_BACKEND` in settings / `.env.example` (today: `ollama` only)
 
+## Phase 20 — Ingest connectors (read-only)
+
+- [x] HTTPS + S3 fetch with opt-in `AEGISAI_CONNECTOR_REMOTE_ENABLED`, size cap, host/bucket allowlists ([`connectors/fetch.py`](src/aegisai/connectors/fetch.py), optional **`aegisai[s3]`** / boto3)
+- [x] Virus-scan hook stub ([`connectors/virus_scan.py`](src/aegisai/connectors/virus_scan.py))
+- [x] `materialize_uri` for jobs + RAG/image/video paths ([`io_util.py`](src/aegisai/pipelines/io_util.py))
+- [x] Collection batch: `source_uri` per document (or inline `text`), batch cap **2000**, parallel fetch cap ([`schemas/collections.py`](src/aegisai/schemas/collections.py), [`v1_collections`](src/aegisai/api/routes/v1_collections.py))
+- [x] Tests [`tests/test_p20_connectors.py`](tests/test_p20_connectors.py); [`conftest.py`](tests/conftest.py) autouse temp Chroma dir for all tests
+
+## Phase 21 — ASR path
+
+- [x] `InputType.audio_ref` jobs: ffmpeg → 16 kHz mono WAV → stub or `AEGISAI_ASR_HTTP_URL` ([`pipelines/asr_pipeline.py`](src/aegisai/pipelines/asr_pipeline.py), [`asr_media.py`](src/aegisai/pipelines/asr_media.py))
+- [x] `video_transcribe` on `JobRequest`: `video_ref` jobs transcribe audio track only (no frame vision)
+- [x] `JobEvent.payload` + **asr** stage event with capped segment list; `LatencyBreakdownMs.asr_ms`; metrics pipeline **`asr`**
+- [x] Tests [`tests/test_p21_asr.py`](tests/test_p21_asr.py)
+
 ---
 
 ## Backlog / ideas (not committed)
 
-- [ ] **Strategy:** [docs/strategy/expansion_roadmap.md](docs/strategy/expansion_roadmap.md) — industries, S/M/L use cases, personas, integration map; **next shipped phases: P20+** (second inference backend = P24 per roadmap)
+- [ ] **Strategy:** [docs/strategy/expansion_roadmap.md](docs/strategy/expansion_roadmap.md) — industries, S/M/L use cases, personas, integration map; **next: P22+** (webhooks); cloud inference adapter = **P24**
 - [x] Scene detection for smarter video keyframes (`video_sampling.scene_detection` + ffmpeg)
 - [x] DLP integration prototype for hybrid mode ([`src/aegisai/dlp/scan.py`](src/aegisai/dlp/scan.py))
 - [x] K8s Helm chart (T2) — [`deploy/helm/aegisai`](deploy/helm/aegisai)

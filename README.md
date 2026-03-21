@@ -7,7 +7,7 @@
 **Repository:** [github.com/Phani3108/AegisAI](https://github.com/Phani3108/AegisAI)  
 **Docs:** [planning.md](planning.md) (architecture & tiers) · [docs/strategy/expansion_roadmap.md](docs/strategy/expansion_roadmap.md) (industries, personas, integrations) · [tasks.md](tasks.md) (checklist) · [LOG.md](LOG.md) (changelog) · [docs/integrators/SDK.md](docs/integrators/SDK.md) (OpenAPI / clients)
 
-**Status:** Phases **0–18** shipped (see roadmap table below). CI runs **Ruff**, **pytest** (3.11 + 3.12), package **build**, and **Docker image build**. Optional extras: **`aegisai[otel]`**, **`aegisai[redis]`** (shared idempotency + rate limits across replicas).
+**Status:** Phases **0–21** shipped (see roadmap table below). CI runs **Ruff**, **pytest** (3.11 + 3.12), package **build**, and **Docker image build**. Optional extras: **`aegisai[otel]`**, **`aegisai[redis]`**, **`aegisai[s3]`** (S3 connector fetch).
 
 ---
 
@@ -37,7 +37,7 @@
 
 ## Why AegisAI
 
-- **Multimodal jobs** — `image_ref`, `video_ref` (ffmpeg), `document_ref` (ephemeral RAG), `rag_collection` (Chroma).
+- **Multimodal jobs** — `image_ref`, `video_ref` (ffmpeg), `document_ref` (ephemeral RAG), `audio_ref` (ASR), `video_transcribe` (audio-only from video), `rag_collection` (Chroma).
 - **Policy-gated hybrid** — YAML routing; kill switch; optional DLP regex gate on hybrid requests.
 - **Operations** — idempotency, optional API key, concurrency caps (429), cancel + progress (SSE/WebSocket), Prometheus metrics.
 - **Bounded & streaming chat** — `POST /v1/query` (sync), `POST /v1/stream/chat` (SSE to Ollama).
@@ -297,7 +297,7 @@ When **`AEGISAI_API_KEY`** is set, **`/v1/*`** requires `Authorization: Bearer <
 
 ## Job request model
 
-- **`inputs[]`** — `image_ref` | `video_ref` | `document_ref` | `text` (exactly one media type per job unless using `rag_collection`-only jobs).
+- **`inputs[]`** — `image_ref` | `video_ref` | `document_ref` | `audio_ref` | `text` (exactly one media type per job unless using `rag_collection`-only jobs). Optional **`video_transcribe`: true** with `video_ref` skips frame vision and runs transcription (ffmpeg + ASR).
 - **`sensitivity_label`** — `public` \| `internal` \| `confidential` \| `regulated`.
 - **`mode`** — `local_only` \| `hybrid` (enforced against [config/routing_policy.yaml](config/routing_policy.yaml)).
 - **`video_sampling`** — `max_frames`, optional `fps`, optional **`scene_detection`** + **`scene_threshold`**.
@@ -316,6 +316,13 @@ All settings use the **`AEGISAI_`** prefix (see [.env.example](.env.example)).
 |----------|---------|---------|
 | `AEGISAI_OLLAMA_BASE_URL` | `http://127.0.0.1:11434` | Ollama base URL |
 | `AEGISAI_INFERENCE_BACKEND` | `ollama` | Inference driver (extensible; today only **ollama**) |
+| `AEGISAI_CONNECTOR_REMOTE_ENABLED` | `false` | Allow **https://** / **s3://** URIs in jobs + `source_uri` ingest (allowlists required) |
+| `AEGISAI_CONNECTOR_HTTPS_HOSTS_ALLOWLIST` | _(unset)_ | Comma-separated hosts allowed after redirects (HTTPS fetch) |
+| `AEGISAI_CONNECTOR_S3_BUCKET_ALLOWLIST` | _(unset)_ | Comma-separated buckets for **s3://** (`pip install 'aegisai[s3]'`) |
+| `AEGISAI_CONNECTOR_MAX_FETCH_BYTES` | `50000000` | Per-fetch byte cap |
+| `AEGISAI_CONNECTOR_INGEST_MAX_CONCURRENT` | `8` | Parallel **source_uri** fetches per collection batch |
+| `AEGISAI_ASR_STUB` | `true` | Stub transcript when no `AEGISAI_ASR_HTTP_URL` |
+| `AEGISAI_ASR_HTTP_URL` | _(unset)_ | POST **wav** as multipart `file`; JSON `text` + optional `segments` |
 | `AEGISAI_VISION_MODEL` | `llava` | Vision model |
 | `AEGISAI_LLM_MODEL` | `llama3.2` | Text model for answer step |
 | `AEGISAI_EMBED_MODEL` | `nomic-embed-text` | Embeddings for RAG |

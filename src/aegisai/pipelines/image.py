@@ -5,7 +5,7 @@ from dataclasses import dataclass
 
 from aegisai.config import Settings
 from aegisai.inference.protocol import InferenceBackend
-from aegisai.pipelines.io_util import file_to_image_base64, resolve_file_uri
+from aegisai.pipelines.io_util import file_to_image_base64, materialize_uri
 from aegisai.pipelines.vision_steps import (
     VISION_PROMPT_IMAGE,
     llm_answer_from_evidence,
@@ -49,10 +49,14 @@ async def run_image_pipeline(
 ) -> ImagePipelineResult:
     t_ingest = time.perf_counter()
     uri = _first_image_uri(request.inputs)
-    path = resolve_file_uri(uri, settings)
-    image_b64 = file_to_image_base64(path)
-    user_question = _pick_user_question(request.inputs)
-    ingest_ms = int((time.perf_counter() - t_ingest) * 1000)
+    path, temps = await materialize_uri(uri, settings)
+    try:
+        image_b64 = file_to_image_base64(path)
+        user_question = _pick_user_question(request.inputs)
+        ingest_ms = int((time.perf_counter() - t_ingest) * 1000)
+    finally:
+        for p in temps:
+            p.unlink(missing_ok=True)
 
     t0 = time.perf_counter()
     vision_text, vision_body = await vision_single_shot(

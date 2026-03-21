@@ -126,6 +126,56 @@ class Settings(BaseSettings):
         le=5.0,
         description="Base backoff for Ollama retries (seconds), multiplied by attempt.",
     )
+    connector_remote_enabled: bool = Field(
+        default=False,
+        description="Allow https:// and s3:// media/document URIs (allowlists required).",
+    )
+    connector_max_fetch_bytes: int = Field(
+        default=50_000_000,
+        ge=1024,
+        le=500_000_000,
+        description="Max bytes per remote fetch (HTTPS/S3).",
+    )
+    connector_fetch_timeout_s: float = Field(
+        default=120.0,
+        ge=5.0,
+        le=3600.0,
+        description="HTTP client timeout for connector GETs.",
+    )
+    connector_https_hosts_allowlist: str | None = Field(
+        default=None,
+        description=(
+            "Comma-separated lowercase hostnames for https:// (final URL after redirects)."
+        ),
+    )
+    connector_s3_bucket_allowlist: str | None = Field(
+        default=None,
+        description="Comma-separated S3 buckets for s3:// URIs (optional dep: aegisai[s3]).",
+    )
+    connector_ingest_max_concurrent: int = Field(
+        default=8,
+        ge=1,
+        le=64,
+        description="Max parallel source_uri fetches per POST /v1/collections/.../documents batch.",
+    )
+    asr_stub: bool = Field(
+        default=True,
+        description="If true, ASR returns a stub transcript (no external model).",
+    )
+    asr_stub_text: str = Field(
+        default="[asr stub] configure AEGISAI_ASR_HTTP_URL or implement a real ASR backend",
+        description="Transcript text used when asr_stub is true.",
+    )
+    asr_http_url: str | None = Field(
+        default=None,
+        description="Optional ASR over HTTP: POST wav as multipart file; JSON text + segments.",
+    )
+    asr_http_timeout_s: float = Field(
+        default=120.0,
+        ge=5.0,
+        le=600.0,
+        description="Timeout for ASR HTTP backend.",
+    )
 
 
 def get_settings() -> Settings:

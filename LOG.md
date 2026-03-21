@@ -4,6 +4,16 @@ Append-only chronological record. Each entry: **date**, **user prompt (summary)*
 
 ---
 
+## 2026-03-20 (P20/P21)
+
+### Entry — Ingest connectors + ASR
+
+- **Prompt summary:** Complete Phase 20 and 21 from expansion roadmap.
+- **Actions:** P20: `connectors/` HTTPS+S3 fetch with allowlists, virus-scan stub, `materialize_uri` for jobs, `DocumentItem.source_uri`, batch 2000 + parallel ingest. P21: `audio_ref`, `video_transcribe`, ffmpeg→WAV, stub/HTTP ASR, `JobEvent.payload` + `asr_ms`, metrics `asr`. README/tasks/roadmap/.env.example; tests `test_p20_*`, `test_p21_*`; chroma 422 tests use tmp chroma dir.
+- **Files:** `src/aegisai/connectors/*`, `config.py`, `pipelines/{io_util,rag,image,video_job,asr_media,asr_pipeline}.py`, `schemas/{jobs,collections}.py`, `services/{job_runner,metrics}.py`, `api/routes/v1_collections.py`, `pyproject.toml` (`[s3]`), `tests/test_p20_connectors.py`, `tests/test_p21_asr.py`, `tests/conftest.py` (autouse Chroma temp dir), `examples/demo-ui/index.html`, docs/README/tasks/LOG/roadmap/.env.example
+
+---
+
 ## 2026-03-20 (later)
 
 ### Entry — P19 inference abstraction wiring

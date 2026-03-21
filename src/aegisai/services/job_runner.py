@@ -5,6 +5,7 @@ from typing import Any
 
 from aegisai.config import Settings
 from aegisai.inference.protocol import InferenceBackend
+from aegisai.pipelines.asr_pipeline import run_asr_pipeline, sanitize_segments_payload
 from aegisai.pipelines.image import run_image_pipeline
 from aegisai.pipelines.rag import run_rag_pipeline
 from aegisai.pipelines.rag_chroma import run_chroma_rag_pipeline
@@ -32,7 +33,12 @@ def _has_rag_collection(body: JobRequest) -> bool:
 def _media_conflict(body: JobRequest) -> bool:
     n = sum(
         1
-        for t in (InputType.video_ref, InputType.image_ref, InputType.document_ref)
+        for t in (
+            InputType.video_ref,
+            InputType.image_ref,
+            InputType.document_ref,
+            InputType.audio_ref,
+        )
         if _has_input(body, t)
     )
     return n > 1
@@ -206,7 +212,9 @@ async def execute_job(
             return
 
         if _media_conflict(body):
-            raise ValueError("use only one of video_ref, image_ref, document_ref per job")
+            raise ValueError(
+                "use only one of video_ref, image_ref, document_ref, audio_ref per job"
+            )
 
         if await _cancel_if_requested(
             job_id,
@@ -217,6 +225,64 @@ async def execute_job(
             return
 
         if _has_input(body, InputType.video_ref):
+            if body.video_transcribe:
+                result = await run_asr_pipeline(
+                    body, settings, inference, from_video=True
+                )
+                asr_ts = job_store.utcnow()
+                cur_asr = (await job_store.get_job(job_id)) or cur
+                await job_store.patch_job(
+                    job_id,
+                    events=cur_asr.events
+                    + [
+                        JobEvent(
+                            ts=asr_ts,
+                            stage="asr",
+                            message=f"transcription ({result.segment_count} segments)",
+                            route=route,
+                            payload=sanitize_segments_payload(result.segments),
+                        )
+                    ],
+                )
+                done = job_store.utcnow()
+                cur3 = (await job_store.get_job(job_id)) or cur
+                latency = LatencyBreakdownMs(
+                    ingest_ms=result.ingest_ms,
+                    asr_ms=result.asr_ms,
+                    llm_ms=result.llm_ms,
+                )
+                models_u = [m for m in [result.llm_model] if m]
+                await job_store.patch_job(
+                    job_id,
+                    status=JobStatus.succeeded,
+                    updated_at=done,
+                    result=JobResult(
+                        text=result.answer,
+                        structured=_structured_with_optional_json(
+                            body,
+                            result.answer,
+                            {
+                                "segment_count": result.segment_count,
+                                "transcribe_mode": "video_audio",
+                                "transcript_preview": (result.transcript[:800]),
+                            },
+                        ),
+                    ),
+                    events=cur3.events
+                    + [
+                        JobEvent(
+                            ts=done,
+                            stage="pipeline",
+                            message="succeeded",
+                            route=route,
+                            models_used=models_u or None,
+                            latency=latency,
+                        )
+                    ],
+                )
+                await _record_success(body, latency)
+                return
+
             result = await run_video_pipeline(
                 body,
                 settings,
@@ -305,6 +371,64 @@ async def execute_job(
             await _record_success(body, latency)
             return
 
+        if _has_input(body, InputType.audio_ref):
+            result = await run_asr_pipeline(
+                body, settings, inference, from_video=False
+            )
+            asr_ts = job_store.utcnow()
+            cur_asr = (await job_store.get_job(job_id)) or cur
+            await job_store.patch_job(
+                job_id,
+                events=cur_asr.events
+                + [
+                    JobEvent(
+                        ts=asr_ts,
+                        stage="asr",
+                        message=f"transcription ({result.segment_count} segments)",
+                        route=route,
+                        payload=sanitize_segments_payload(result.segments),
+                    )
+                ],
+            )
+            done = job_store.utcnow()
+            cur3 = (await job_store.get_job(job_id)) or cur
+            latency = LatencyBreakdownMs(
+                ingest_ms=result.ingest_ms,
+                asr_ms=result.asr_ms,
+                llm_ms=result.llm_ms,
+            )
+            models_u = [m for m in [result.llm_model] if m]
+            await job_store.patch_job(
+                job_id,
+                status=JobStatus.succeeded,
+                updated_at=done,
+                result=JobResult(
+                    text=result.answer,
+                    structured=_structured_with_optional_json(
+                        body,
+                        result.answer,
+                        {
+                            "segment_count": result.segment_count,
+                            "transcribe_mode": "audio",
+                            "transcript_preview": (result.transcript[:800]),
+                        },
+                    ),
+                ),
+                events=cur3.events
+                + [
+                    JobEvent(
+                        ts=done,
+                        stage="pipeline",
+                        message="succeeded",
+                        route=route,
+                        models_used=models_u or None,
+                        latency=latency,
+                    )
+                ],
+            )
+            await _record_success(body, latency)
+            return
+
         if await _cancel_if_requested(
             job_id,
             body,
@@ -315,7 +439,8 @@ async def execute_job(
 
         if not _has_input(body, InputType.image_ref):
             raise ValueError(
-                "job needs image_ref, video_ref, document_ref, or rag_collection + text"
+                "job needs image_ref, video_ref, document_ref, audio_ref, "
+                "or rag_collection + text"
             )
 
         result = await run_image_pipeline(body, settings, inference)

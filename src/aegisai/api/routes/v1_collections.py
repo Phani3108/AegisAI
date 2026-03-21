@@ -7,17 +7,37 @@ import chromadb
 from fastapi import APIRouter, HTTPException, Request
 
 from aegisai.api.openapi_extra import common_error_responses
+from aegisai.config import Settings
+from aegisai.pipelines.io_util import materialize_uri
 from aegisai.rag_store.ingest import upsert_documents
 from aegisai.rag_store.names import sanitize_collection_name
 from aegisai.schemas.collections import (
     CollectionCreate,
     DocumentBatch,
+    DocumentItem,
     IngestResponse,
 )
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
+
+
+async def _resolved_document_text(
+    d: DocumentItem,
+    settings: Settings,
+) -> tuple[str, str, dict | None]:
+    raw_t = (d.text or "").strip()
+    if raw_t:
+        return d.id, raw_t, d.metadata
+    uri = (d.source_uri or "").strip()
+    path, temps = await materialize_uri(uri, settings)
+    try:
+        text = path.read_text(encoding="utf-8", errors="replace")
+        return d.id, text, d.metadata
+    finally:
+        for p in temps:
+            p.unlink(missing_ok=True)
 
 
 def _chroma(request: Request) -> chromadb.PersistentClient:
@@ -74,7 +94,14 @@ async def ingest_documents_route(
     chroma = _chroma(request)
     settings = request.app.state.settings
     ollama = request.app.state.inference
-    items = [(d.id, d.text, d.metadata) for d in body.documents]
+    sem = asyncio.Semaphore(settings.connector_ingest_max_concurrent)
+
+    async def one(doc: DocumentItem) -> tuple[str, str, dict | None]:
+        async with sem:
+            return await _resolved_document_text(doc, settings)
+
+    resolved = await asyncio.gather(*(one(d) for d in body.documents))
+    items = [(i, t, m) for i, t, m in resolved]
     n = await upsert_documents(chroma, name, settings, ollama, items)
     safe = sanitize_collection_name(name)
     return IngestResponse(chunks_added=n, collection=safe)
