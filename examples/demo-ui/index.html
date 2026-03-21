@@ -3,369 +3,711 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>AegisAI — demo console</title>
+  <title>AegisAI Lab — operator console</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <style>
     :root {
-      font-family: Inter, ui-sans-serif, system-ui, sans-serif;
-      color: #111827;
-      background: #ffffff;
-      line-height: 1.45;
+      --sand-0: #fffdfb;
+      --sand-1: #faf4ec;
+      --sand-2: #f0e4d4;
+      --sand-3: #e2d0bc;
+      --sand-4: #c9b49a;
+      --clay: #b85c38;
+      --clay-hover: #9d4e2f;
+      --clay-muted: rgba(184, 92, 56, 0.14);
+      --ink: #2c241c;
+      --ink-soft: #5c5045;
+      --ink-faint: #8a7b6c;
+      --success: #2d6a4f;
+      --success-bg: #e8f5ef;
+      --warn: #b45309;
+      --warn-bg: #fff4e6;
+      --card-shadow: 0 1px 2px rgba(44, 36, 28, 0.06), 0 8px 24px rgba(44, 36, 28, 0.06);
+      --card-shadow-hover: 0 2px 4px rgba(44, 36, 28, 0.08), 0 12px 32px rgba(44, 36, 28, 0.1);
+      --radius: 16px;
+      --radius-sm: 10px;
+      font-family: "DM Sans", ui-sans-serif, system-ui, sans-serif;
+      color: var(--ink);
+      background: var(--sand-1);
+      line-height: 1.5;
+      font-size: 15px;
     }
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
     body {
       margin: 0;
-      background: #f9fafb;
-      color: #111827;
+      min-height: 100vh;
+      background:
+        radial-gradient(1200px 600px at 10% -10%, rgba(255, 183, 120, 0.18), transparent 55%),
+        radial-gradient(900px 500px at 95% 0%, rgba(212, 165, 116, 0.2), transparent 50%),
+        linear-gradient(180deg, var(--sand-1) 0%, var(--sand-2) 100%);
     }
-    .page {
-      max-width: 1080px;
+    .top-bar {
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      backdrop-filter: blur(12px);
+      background: rgba(253, 253, 251, 0.82);
+      border-bottom: 1px solid var(--sand-3);
+    }
+    .top-inner {
+      max-width: 1280px;
       margin: 0 auto;
-      padding: 2rem 1rem 3rem;
+      padding: 0.85rem 1.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+    }
+    .brand-mark {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, var(--clay), #d4a574);
+      box-shadow: 0 2px 8px rgba(184, 92, 56, 0.35);
+    }
+    .brand h1 {
+      margin: 0;
+      font-size: 1.05rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+    .brand span {
+      display: block;
+      font-size: 0.72rem;
+      font-weight: 500;
+      color: var(--ink-faint);
+      margin-top: 0.05rem;
+    }
+    .nav-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+    }
+    .nav-pills a {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--ink-soft);
+      text-decoration: none;
+      padding: 0.35rem 0.75rem;
+      border-radius: 999px;
+      border: 1px solid transparent;
+      transition: background 0.15s, border-color 0.15s, color 0.15s;
+    }
+    .nav-pills a:hover {
+      background: var(--sand-2);
+      color: var(--ink);
+    }
+    .shell {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 1.5rem 1.25rem 3rem;
     }
     .hero {
-      background: #ffffff;
-      border: 1px solid #e5e7eb;
-      border-radius: 14px;
-      padding: 1rem 1.25rem;
-      box-shadow: 0 1px 2px rgba(17, 24, 39, 0.05);
+      background: var(--sand-0);
+      border: 1px solid var(--sand-3);
+      border-radius: var(--radius);
+      padding: 1.35rem 1.5rem;
+      box-shadow: var(--card-shadow);
+      margin-bottom: 1.25rem;
     }
-    h1 {
-      margin: 0;
-      font-size: 1.4rem;
-      font-weight: 700;
+    .hero p.lead {
+      margin: 0.5rem 0 0;
+      color: var(--ink-soft);
+      font-size: 0.95rem;
+      max-width: 62ch;
     }
-    .sub {
-      margin: 0.45rem 0 0;
-      color: #4b5563;
-      font-size: 0.9rem;
-    }
-    .status-row {
-      margin-top: 0.8rem;
+    .hero .chips {
+      margin-top: 1rem;
       display: flex;
-      gap: 0.55rem;
       flex-wrap: wrap;
+      gap: 0.45rem;
       align-items: center;
     }
-    .pill {
-      border: 1px solid #d1d5db;
+    .chip {
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 0.28rem 0.65rem;
       border-radius: 999px;
-      padding: 0.22rem 0.55rem;
-      font-size: 0.76rem;
-      background: #ffffff;
-      color: #1f2937;
+      background: var(--sand-1);
+      border: 1px solid var(--sand-3);
+      color: var(--ink-soft);
     }
-    .pill.good {
-      border-color: #86efac;
-      background: #f0fdf4;
-      color: #166534;
+    .chip.accent {
+      background: var(--clay-muted);
+      border-color: rgba(184, 92, 56, 0.25);
+      color: var(--clay);
     }
-    .layout {
+    .chip.ok {
+      background: var(--success-bg);
+      border-color: rgba(45, 106, 79, 0.25);
+      color: var(--success);
+    }
+    .grid-main {
       display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 1rem;
-      margin-top: 1rem;
+      grid-template-columns: minmax(0, 1.15fr) minmax(320px, 0.85fr);
+      gap: 1.25rem;
+      align-items: start;
     }
+    @media (max-width: 1024px) {
+      .grid-main { grid-template-columns: 1fr; }
+    }
+    .section-anchor { scroll-margin-top: 72px; }
     .card {
-      background: #ffffff;
-      border: 1px solid #e5e7eb;
-      border-radius: 14px;
-      padding: 1rem;
-      box-shadow: 0 1px 2px rgba(17, 24, 39, 0.05);
+      background: var(--sand-0);
+      border: 1px solid var(--sand-3);
+      border-radius: var(--radius);
+      padding: 1.25rem 1.35rem;
+      box-shadow: var(--card-shadow);
+      margin-bottom: 1.25rem;
+      transition: box-shadow 0.2s ease;
     }
-    .card h2 {
-      margin: 0 0 0.75rem;
-      font-size: 1rem;
-      font-weight: 650;
+    .card:hover { box-shadow: var(--card-shadow-hover); }
+    .card-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 0.75rem;
+      margin-bottom: 1rem;
     }
-    label {
-      display: block;
+    .card-head h2 {
+      margin: 0;
+      font-size: 0.95rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+    }
+    .card-head p {
+      margin: 0.25rem 0 0;
       font-size: 0.78rem;
-      color: #6b7280;
-      margin-top: 0.65rem;
+      color: var(--ink-faint);
+      max-width: 42ch;
     }
-    input,
-    textarea,
-    select {
+    .accent-rule {
+      width: 36px;
+      height: 3px;
+      border-radius: 2px;
+      background: linear-gradient(90deg, var(--clay), #e8a87c);
+      margin-bottom: 0.65rem;
+    }
+    label, .label {
+      display: block;
+      font-size: 0.72rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--ink-faint);
+      margin-top: 0.85rem;
+    }
+    label:first-of-type, .field-group:first-child .label { margin-top: 0; }
+    input, textarea, select {
       width: 100%;
-      margin-top: 0.3rem;
-      border: 1px solid #d1d5db;
-      border-radius: 10px;
-      background: #ffffff;
-      color: #111827;
-      padding: 0.55rem 0.65rem;
+      margin-top: 0.35rem;
+      border: 1px solid var(--sand-3);
+      border-radius: var(--radius-sm);
+      background: var(--sand-0);
+      color: var(--ink);
+      padding: 0.55rem 0.7rem;
       font-size: 0.9rem;
+      font-family: inherit;
+      transition: border-color 0.15s, box-shadow 0.15s;
     }
-    input:focus,
-    textarea:focus,
-    select:focus {
-      outline: 2px solid #93c5fd;
-      border-color: #60a5fa;
+    input:focus, textarea:focus, select:focus {
+      outline: none;
+      border-color: var(--clay);
+      box-shadow: 0 0 0 3px var(--clay-muted);
     }
-    textarea {
-      min-height: 220px;
-      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-      font-size: 0.8rem;
+    textarea.code {
+      min-height: 200px;
+      font-family: "JetBrains Mono", ui-monospace, monospace;
+      font-size: 0.78rem;
+      line-height: 1.45;
       resize: vertical;
-      line-height: 1.35;
     }
     .row {
       display: flex;
-      gap: 0.7rem;
+      gap: 0.85rem;
       flex-wrap: wrap;
-      align-items: end;
+      align-items: flex-end;
     }
-    .row > .col {
-      flex: 1;
-      min-width: 180px;
-    }
-    .btns {
-      margin-top: 0.85rem;
+    .row > .col { flex: 1; min-width: 160px; }
+    .btn-row {
       display: flex;
       flex-wrap: wrap;
       gap: 0.5rem;
+      margin-top: 1rem;
     }
     button {
-      border: 1px solid #d1d5db;
-      background: #ffffff;
-      color: #111827;
-      border-radius: 10px;
-      font-size: 0.84rem;
+      font-family: inherit;
+      font-size: 0.82rem;
       font-weight: 600;
-      padding: 0.48rem 0.72rem;
+      padding: 0.5rem 0.95rem;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--sand-3);
+      background: var(--sand-1);
+      color: var(--ink);
       cursor: pointer;
+      transition: transform 0.1s, background 0.15s, border-color 0.15s, box-shadow 0.15s;
     }
+    button:hover:not(:disabled) {
+      background: var(--sand-2);
+      border-color: var(--sand-4);
+    }
+    button:active:not(:disabled) { transform: scale(0.98); }
     button.primary {
-      background: #1d4ed8;
-      color: #ffffff;
-      border-color: #1d4ed8;
+      background: linear-gradient(180deg, var(--clay), var(--clay-hover));
+      color: #fff;
+      border-color: transparent;
+      box-shadow: 0 2px 8px rgba(184, 92, 56, 0.35);
     }
-    button.good {
-      background: #16a34a;
-      color: #ffffff;
-      border-color: #16a34a;
+    button.primary:hover:not(:disabled) {
+      filter: brightness(1.05);
+      box-shadow: 0 4px 14px rgba(184, 92, 56, 0.4);
     }
-    button.warn {
-      background: #f59e0b;
-      color: #111827;
-      border-color: #f59e0b;
+    button.ghost { background: transparent; }
+    button.danger {
+      background: var(--warn-bg);
+      border-color: rgba(180, 83, 9, 0.35);
+      color: var(--warn);
     }
-    button:disabled {
-      opacity: 0.58;
-      cursor: not-allowed;
-    }
-    .mini {
-      margin-top: 0.7rem;
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+    .hint {
+      margin-top: 0.75rem;
       font-size: 0.78rem;
-      color: #6b7280;
+      color: var(--ink-faint);
+      line-height: 1.45;
+    }
+    .hint code {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 0.72rem;
+      background: var(--sand-1);
+      padding: 0.1rem 0.35rem;
+      border-radius: 4px;
+    }
+    .collapsible summary {
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.85rem;
+      color: var(--ink-soft);
+      list-style: none;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .collapsible summary::-webkit-details-marker { display: none; }
+    .collapsible summary::before {
+      content: "▸";
+      font-size: 0.7rem;
+      transition: transform 0.2s;
+    }
+    .collapsible[open] summary::before { transform: rotate(90deg); }
+    .collapsible .inner { margin-top: 0.85rem; padding-top: 0.85rem; border-top: 1px dashed var(--sand-3); }
+    .sticky-col { position: sticky; top: 76px; }
+    pre.out {
+      margin: 0;
+      min-height: 280px;
+      max-height: min(52vh, 520px);
+      overflow: auto;
+      padding: 1rem;
+      border-radius: var(--radius-sm);
+      background: var(--sand-1);
+      border: 1px solid var(--sand-3);
+      font-family: "JetBrains Mono", monospace;
+      font-size: 0.76rem;
+      line-height: 1.45;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .out-meta {
       display: flex;
       justify-content: space-between;
-      gap: 1rem;
       flex-wrap: wrap;
+      gap: 0.5rem;
+      font-size: 0.72rem;
+      color: var(--ink-faint);
+      margin-top: 0.65rem;
     }
     .events {
       margin-top: 0.75rem;
-      border: 1px solid #e5e7eb;
-      border-radius: 10px;
-      background: #f8fafc;
-      min-height: 180px;
-      max-height: 260px;
+      border: 1px solid var(--sand-3);
+      border-radius: var(--radius-sm);
+      background: var(--sand-1);
+      min-height: 160px;
+      max-height: 240px;
       overflow: auto;
-      padding: 0.6rem;
-      font-size: 0.8rem;
+      padding: 0.65rem 0.75rem;
+      font-size: 0.78rem;
     }
     .event-row {
-      border-bottom: 1px dashed #d1d5db;
-      padding: 0.35rem 0;
+      padding: 0.4rem 0;
+      border-bottom: 1px dashed var(--sand-3);
     }
-    .event-row:last-child {
-      border-bottom: 0;
-    }
-    .event-time {
-      color: #6b7280;
-      font-size: 0.74rem;
-      margin-right: 0.5rem;
-    }
+    .event-row:last-child { border-bottom: 0; }
+    .event-time { color: var(--ink-faint); font-size: 0.7rem; margin-right: 0.45rem; }
     .event-msg {
-      color: #1f2937;
-      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-family: "JetBrains Mono", monospace;
+      color: var(--ink-soft);
       white-space: pre-wrap;
       word-break: break-word;
     }
-    .response-head {
+    #toast {
+      position: fixed;
+      bottom: 1.25rem;
+      right: 1.25rem;
+      max-width: 360px;
+      padding: 0.75rem 1rem;
+      border-radius: var(--radius-sm);
+      background: var(--ink);
+      color: #fff;
+      font-size: 0.82rem;
+      font-weight: 500;
+      box-shadow: var(--card-shadow-hover);
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(8px);
+      transition: opacity 0.25s, transform 0.25s;
+      z-index: 100;
+    }
+    #toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .video-advanced { margin-top: 0.5rem; padding: 0.75rem; background: var(--sand-1); border-radius: var(--radius-sm); border: 1px solid var(--sand-2); }
+    .checkbox-row {
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      gap: 0.8rem;
-      margin-bottom: 0.5rem;
+      gap: 0.5rem;
+      margin-top: 0.65rem;
     }
-    .response-head h2 {
-      margin: 0;
-    }
-    pre {
-      margin: 0;
-      border: 1px solid #e5e7eb;
-      background: #f8fafc;
-      border-radius: 10px;
-      padding: 0.75rem;
-      min-height: 370px;
-      overflow: auto;
-      white-space: pre-wrap;
-      word-break: break-word;
-      font-size: 0.8rem;
-      line-height: 1.35;
-    }
-    .muted {
-      color: #6b7280;
-    }
-    .hint {
-      margin-top: 0.7rem;
-      color: #6b7280;
-      font-size: 0.8rem;
-    }
-    @media (max-width: 930px) {
-      .layout {
-        grid-template-columns: 1fr;
-      }
-    }
+    .checkbox-row input { width: auto; margin: 0; }
+    .tpl-rag-only { display: none; }
+    .tpl-rag-only.visible { display: block; }
+    .tpl-media-only { display: block; }
+    .tpl-media-only.hidden { display: none; }
   </style>
 </head>
 <body>
-  <div class="page">
-    <section class="hero">
-      <h1>AegisAI demo console</h1>
-      <p class="sub">
-        Clean debug UI for policy checks, job creation, and status refresh. Use real <code>file://</code> paths reachable by the API host.
+  <header class="top-bar">
+    <div class="top-inner">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true"></div>
+        <div>
+          <h1>AegisAI Lab</h1>
+          <span>Multimodal API console · inspired by research lab UIs</span>
+        </div>
+      </div>
+      <nav class="nav-pills" aria-label="Page sections">
+        <a href="#sec-connect">Connect</a>
+        <a href="#sec-pipeline">Pipeline</a>
+        <a href="#sec-collections">Collections</a>
+        <a href="#sec-json">JSON</a>
+        <a href="#sec-output">Output</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="shell">
+    <section class="hero section-anchor" id="sec-hero">
+      <div class="accent-rule"></div>
+      <p class="lead">
+        Design a job like an experiment: pick sensitivity, routing mode, and a pipeline preset.
+        Paths must be <code>file://</code> URLs the <strong>API server</strong> can read—not your laptop unless the API runs there.
       </p>
-      <div class="status-row">
-        <span class="pill">Phase 10 UI polish</span>
-        <span class="pill good">White background</span>
-        <span class="pill">API-first flow</span>
-        <span id="connPill" class="pill">Connection unknown</span>
+      <div class="chips">
+        <span class="chip accent">Desert sand theme</span>
+        <span class="chip">Chroma RAG + media jobs</span>
+        <span id="connPill" class="chip">Backend: not checked</span>
       </div>
     </section>
 
-    <div class="layout">
-      <section class="card">
-        <h2>Connection & Request Builder</h2>
+    <div class="grid-main">
+      <div>
+        <section class="card section-anchor" id="sec-connect">
+          <div class="card-head">
+            <div>
+              <div class="accent-rule"></div>
+              <h2>Connection</h2>
+              <p>Target host, optional secret, and quick health probes.</p>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col">
+              <label for="base">API base URL</label>
+              <input id="base" type="url" value="http://127.0.0.1:8000" autocomplete="off" />
+            </div>
+            <div class="col">
+              <label for="apiKey">Secret (optional)</label>
+              <input id="apiKey" type="password" placeholder="API key or JWT bearer token" autocomplete="off" />
+            </div>
+            <div class="col">
+              <label for="authMode">Auth style</label>
+              <select id="authMode" title="How the secret is sent">
+                <option value="bearer">Authorization: Bearer &lt;secret&gt;</option>
+                <option value="x-api-key">X-API-Key: &lt;secret&gt;</option>
+              </select>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col">
+              <label for="idempotencyKey">Idempotency-Key (optional)</label>
+              <input id="idempotencyKey" type="text" placeholder="stable key for safe retries" autocomplete="off" />
+            </div>
+          </div>
+          <div class="btn-row">
+            <button type="button" id="btnCheck">GET /ready</button>
+            <button type="button" id="btnHealth">GET /health</button>
+            <button type="button" id="btnVersion">GET /version</button>
+            <button type="button" id="btnPolicy">GET /v1/policy</button>
+            <button type="button" id="btnMetrics">GET /v1/metrics (JSON)</button>
+          </div>
+        </section>
 
-        <div class="row">
-          <div class="col">
-            <label for="base">API base URL</label>
-            <input id="base" type="text" value="http://127.0.0.1:8000" autocomplete="off" />
+        <section class="card section-anchor" id="sec-pipeline">
+          <div class="card-head">
+            <div>
+              <div class="accent-rule"></div>
+              <h2>Pipeline designer</h2>
+              <p>Presets populate the JSON body. Tune policy fields before build.</p>
+            </div>
           </div>
-          <div class="col">
-            <label for="apiKey">API key (optional)</label>
-            <input id="apiKey" type="password" placeholder="Bearer / X-API-Key" autocomplete="off" />
+          <div class="row">
+            <div class="col">
+              <label for="sensitivity">Sensitivity label</label>
+              <select id="sensitivity" title="JobRequest.sensitivity_label">
+                <option value="public">public — lowest restriction</option>
+                <option value="internal" selected>internal — default lab use</option>
+                <option value="confidential">confidential — stricter routing</option>
+                <option value="regulated">regulated — strictest</option>
+              </select>
+            </div>
+            <div class="col">
+              <label for="mode">Routing mode</label>
+              <select id="mode" title="JobRequest.mode">
+                <option value="local_only" selected>local_only — all inference local</option>
+                <option value="hybrid">hybrid — policy-gated (may be rejected)</option>
+              </select>
+            </div>
+            <div class="col">
+              <label for="outputPreset">Structured output</label>
+              <select id="outputPreset" title="Optional output_schema">
+                <option value="">None — plain text answer</option>
+                <option value="summary">JSON: { summary, bullets[] }</option>
+                <option value="entities">JSON: { entities[], sentiment }</option>
+              </select>
+            </div>
           </div>
-          <div class="col">
-            <label for="authMode">Auth header mode</label>
-            <select id="authMode">
-              <option value="bearer" selected>Authorization: Bearer</option>
-              <option value="x-api-key">X-API-Key</option>
-            </select>
+          <div class="row">
+            <div class="col">
+              <label for="tplKind">Experiment type</label>
+              <select id="tplKind">
+                <option value="image">Vision — image_ref + question</option>
+                <option value="document">Document — document_ref + question</option>
+                <option value="video">Video — video_ref + question</option>
+                <option value="rag">RAG — Chroma collection + text question only</option>
+              </select>
+            </div>
+            <div class="col">
+              <label for="pollSec">Auto-refresh job</label>
+              <select id="pollSec" title="Poll GET /v1/jobs/{id}">
+                <option value="0">Off</option>
+                <option value="1">Every 1s</option>
+                <option value="2">Every 2s</option>
+                <option value="3">Every 3s</option>
+                <option value="5" selected>Every 5s</option>
+                <option value="10">Every 10s</option>
+                <option value="15">Every 15s</option>
+                <option value="30">Every 30s</option>
+              </select>
+            </div>
+          </div>
+
+          <div id="mediaFields" class="tpl-media-only">
+            <div class="row">
+              <div class="col" style="flex: 2; min-width: 220px;">
+                <label for="tplUri">Media URI (server path)</label>
+                <input id="tplUri" type="text" placeholder="file:///var/data/samples/photo.png" />
+              </div>
+              <div class="col" style="flex: 2; min-width: 200px;">
+                <label for="tplQuestion">Question / instruction</label>
+                <input id="tplQuestion" type="text" value="Summarize in 2 concise bullet points." />
+              </div>
+            </div>
+            <div id="videoBlock" class="video-advanced" hidden>
+              <span class="label">Video sampling (video_sampling)</span>
+              <div class="row">
+                <div class="col">
+                  <label for="vidMaxFrames">max_frames</label>
+                  <select id="vidMaxFrames">
+                    <option value="4">4 frames</option>
+                    <option value="8" selected>8 frames (default)</option>
+                    <option value="12">12 frames</option>
+                    <option value="16">16 frames</option>
+                    <option value="24">24 frames</option>
+                    <option value="32">32 frames</option>
+                  </select>
+                </div>
+                <div class="col">
+                  <label for="vidFps">fps (optional, uniform sampling)</label>
+                  <select id="vidFps">
+                    <option value="">Default / model default</option>
+                    <option value="0.25">0.25 — 1 frame / 4s</option>
+                    <option value="0.5">0.5 — 1 frame / 2s</option>
+                    <option value="1">1 fps</option>
+                    <option value="2">2 fps</option>
+                  </select>
+                </div>
+              </div>
+              <div class="checkbox-row">
+                <input type="checkbox" id="vidScene" />
+                <label for="vidScene" style="margin:0;text-transform:none;font-weight:500;color:var(--ink-soft)">Scene detection (ffmpeg cuts; ignores fps when on)</label>
+              </div>
+              <div class="row">
+                <div class="col">
+                  <label for="vidSceneTh">scene_threshold (0.1–0.9)</label>
+                  <select id="vidSceneTh">
+                    <option value="0.25">0.25 — more cuts</option>
+                    <option value="0.35" selected>0.35 — default</option>
+                    <option value="0.5">0.5 — fewer cuts</option>
+                    <option value="0.7">0.7 — sparse</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div id="ragFields" class="tpl-rag-only">
+            <div class="row">
+              <div class="col">
+                <label for="ragCollectionPick">Chroma collection</label>
+                <select id="ragCollectionPick">
+                  <option value="">Load collections first…</option>
+                </select>
+              </div>
+              <div class="col">
+                <label for="ragCollectionCustom">Or type collection name</label>
+                <input id="ragCollectionCustom" type="text" placeholder="my_kb" />
+              </div>
+            </div>
+            <label for="ragQuestion">RAG question (text input)</label>
+            <textarea id="ragQuestion" class="code" style="min-height:88px" rows="3">What does our documentation say about deployment?</textarea>
+          </div>
+
+          <div class="btn-row">
+            <button type="button" id="btnBuildPayload" class="primary">Build JSON from form</button>
+            <button type="button" id="btnSample">Load sample media JSON</button>
+            <button type="button" id="btnBeautify">Beautify JSON</button>
+            <button type="button" id="btnCreate" class="primary">POST /v1/jobs</button>
+            <button type="button" id="btnGet">GET job status</button>
+            <button type="button" id="btnCancel" class="danger">Cancel job</button>
+            <button type="button" id="btnPoll">Start auto-refresh</button>
+            <button type="button" id="btnStop">Stop auto-refresh</button>
+          </div>
+          <div class="row" style="margin-top:0.75rem">
+            <div class="col">
+              <label for="jobId">Job ID</label>
+              <input id="jobId" type="text" placeholder="Filled after create" />
+            </div>
+          </div>
+          <p class="hint">
+            <strong>CORS:</strong> open this page via <code>python -m http.server</code> from <code>examples/demo-ui</code> so the browser allows <code>fetch</code> to your API.
+            Hybrid mode may return <code>400</code> if policy disallows it for the label you chose.
+          </p>
+        </section>
+
+        <section class="card section-anchor" id="sec-collections">
+          <div class="card-head">
+            <div>
+              <div class="accent-rule"></div>
+              <h2>Vector store</h2>
+              <p>List Chroma collections from the running API (requires auth if configured).</p>
+            </div>
+          </div>
+          <div class="btn-row" style="margin-top:0">
+            <button type="button" id="btnLoadCollections" class="primary">GET /v1/collections</button>
+          </div>
+          <p class="hint">After a successful load, the RAG preset dropdown above is filled with collection names.</p>
+        </section>
+
+        <details class="card collapsible section-anchor" id="sec-json">
+          <summary>Raw request JSON · POST /v1/jobs</summary>
+          <div class="inner">
+            <label for="reqBody">Body</label>
+            <textarea id="reqBody" class="code"></textarea>
+          </div>
+        </details>
+      </div>
+
+      <aside class="sticky-col section-anchor" id="sec-output">
+        <div class="card">
+          <div class="card-head">
+            <div>
+              <div class="accent-rule"></div>
+              <h2>Output</h2>
+              <p>Responses, errors, and live SSE lines for the current job.</p>
+            </div>
+            <div class="btn-row" style="margin-top:0">
+              <button type="button" id="btnCopy" class="ghost">Copy</button>
+              <button type="button" id="btnClear" class="ghost">Clear</button>
+            </div>
+          </div>
+          <pre id="out" class="out">(no response yet)</pre>
+          <div class="out-meta">
+            <span id="lastReq">Last request: —</span>
+            <span id="lastAt">Updated: —</span>
           </div>
         </div>
-
-        <div class="row">
-          <div class="col">
-            <label for="jobId">Job ID</label>
-            <input id="jobId" type="text" placeholder="auto-filled after create" />
+        <div class="card">
+          <div class="card-head">
+            <div>
+              <div class="accent-rule"></div>
+              <h2>Event stream</h2>
+              <p>SSE via fetch (works with Bearer / X-API-Key).</p>
+            </div>
           </div>
-          <div class="col">
-            <label for="pollSec">Auto refresh (seconds)</label>
-            <select id="pollSec">
-              <option value="0">Off</option>
-              <option value="2">2s</option>
-              <option value="5" selected>5s</option>
-              <option value="10">10s</option>
-            </select>
+          <div class="btn-row" style="margin-top:0">
+            <button type="button" id="btnEventsStart" class="primary">Start stream</button>
+            <button type="button" id="btnEventsStop">Stop</button>
+            <button type="button" id="btnEventsClear" class="ghost">Clear log</button>
           </div>
+          <div id="events" class="events" aria-live="polite"></div>
         </div>
-
-        <div class="btns">
-          <button id="btnCheck" type="button">Check /ready</button>
-          <button id="btnPolicy" type="button">Load /v1/policy</button>
-          <button id="btnSample" type="button">Insert sample JSON</button>
-          <button id="btnBuildPayload" type="button">Build from form</button>
-          <button id="btnBeautify" type="button">Beautify JSON</button>
-        </div>
-
-        <div class="row">
-          <div class="col">
-            <label for="tplKind">Structured template</label>
-            <select id="tplKind">
-              <option value="image">Image summary</option>
-              <option value="document">Document QA</option>
-              <option value="video">Video summary</option>
-            </select>
-          </div>
-          <div class="col">
-            <label for="tplUri">Input URI (file:// on server)</label>
-            <input id="tplUri" type="text" placeholder="file:///absolute/path/on/server/input.ext" />
-          </div>
-          <div class="col">
-            <label for="tplQuestion">Prompt / question</label>
-            <input id="tplQuestion" type="text" value="Summarize in 2 concise bullet points." />
-          </div>
-        </div>
-
-        <label for="body">Request body (POST /v1/jobs)</label>
-        <textarea id="body"></textarea>
-
-        <div class="btns">
-          <button id="btnCreate" class="primary" type="button">Create Job</button>
-          <button id="btnGet" type="button">Refresh Job</button>
-          <button id="btnCancel" class="warn" type="button">Cancel Job</button>
-          <button id="btnPoll" class="good" type="button">Start Auto Refresh</button>
-          <button id="btnStop" class="warn" type="button">Stop Auto Refresh</button>
-        </div>
-
-        <p class="hint">
-          Tip: set <code>AEGISAI_API_KEY</code> server-side? Add the key above and the console sends <code>Authorization: Bearer ...</code>.
-        </p>
-      </section>
-
-      <section class="card">
-        <div class="response-head">
-          <h2>Response Viewer</h2>
-          <div class="btns" style="margin-top:0">
-            <button id="btnCopy" type="button">Copy JSON</button>
-            <button id="btnClear" type="button">Clear</button>
-          </div>
-        </div>
-        <pre id="out">(none)</pre>
-        <div class="mini">
-          <span id="lastReq" class="muted">Last request: none</span>
-          <span id="lastAt" class="muted">Updated: never</span>
-        </div>
-
-        <h2 style="margin-top:1rem">Live Job Events (SSE)</h2>
-        <div class="btns" style="margin-top:0.35rem">
-          <button id="btnEventsStart" type="button">Start /events stream</button>
-          <button id="btnEventsStop" type="button">Stop stream</button>
-        </div>
-        <div id="events" class="events" aria-live="polite"></div>
-      </section>
+      </aside>
     </div>
   </div>
 
+  <div id="toast" role="status" aria-live="polite"></div>
+
   <script>
     const $ = (id) => document.getElementById(id);
+    const reqBodyEl = () => $("reqBody");
     const base = () => $("base").value.trim().replace(/\/$/, "");
     let pollTimer = null;
     let eventsAbort = null;
+    let toastTimer = null;
 
     const nowStamp = () => new Date().toLocaleTimeString();
+
+    const toast = (msg) => {
+      const el = $("toast");
+      el.textContent = msg;
+      el.classList.add("show");
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => el.classList.remove("show"), 3200);
+    };
 
     const markMeta = (label) => {
       $("lastReq").textContent = "Last request: " + label;
       $("lastAt").textContent = "Updated: " + nowStamp();
     };
 
-    const headers = () => {
-      const h = { "Content-Type": "application/json" };
+    const headers = (extra) => {
+      const h = Object.assign({ "Content-Type": "application/json" }, extra || {});
       const key = $("apiKey").value.trim();
       if (key) {
         if ($("authMode").value === "x-api-key") {
@@ -398,10 +740,10 @@
       host.scrollTop = host.scrollHeight;
     };
 
-    const setConn = (text, good = false) => {
+    const setConn = (text, ok) => {
       const el = $("connPill");
       el.textContent = text;
-      el.className = good ? "pill good" : "pill";
+      el.className = ok ? "chip ok" : "chip accent";
     };
 
     const parseJsonSafe = (raw) => {
@@ -413,44 +755,77 @@
     };
 
     const request = async (path, options, label) => {
-      const resp = await fetch(base() + path, options);
-      const text = await resp.text();
-      const parsed = parseJsonSafe(text);
-      if (!resp.ok) {
-        show(
-          {
-            status: resp.status,
-            status_text: resp.statusText,
-            error: parsed || text,
-          },
-          label
-        );
+      try {
+        const resp = await fetch(base() + path, options);
+        const text = await resp.text();
+        const parsed = parseJsonSafe(text);
+        if (!resp.ok) {
+          show(
+            { status: resp.status, statusText: resp.statusText, body: parsed || text },
+            label
+          );
+          toast("Error " + resp.status + " — see Output");
+          return null;
+        }
+        show(parsed !== null ? parsed : text, label);
+        return parsed !== null ? parsed : text;
+      } catch (e) {
+        const msg = e && e.message ? e.message : String(e);
+        show({ error: "network_or_cors", detail: msg, hint: "Is the API running? Same machine? CORS is open on FastAPI but use http.server for this page." }, label);
+        toast("Network error — check API URL");
         return null;
       }
-      show(parsed || text, label);
-      return parsed || text;
+    };
+
+    const outputSchemaForPreset = (preset) => {
+      if (preset === "summary") {
+        return {
+          type: "object",
+          properties: {
+            summary: { type: "string" },
+            bullets: { type: "array", items: { type: "string" } },
+          },
+          required: ["summary"],
+        };
+      }
+      if (preset === "entities") {
+        return {
+          type: "object",
+          properties: {
+            entities: { type: "array", items: { type: "string" } },
+            sentiment: { type: "string" },
+          },
+          required: ["entities"],
+        };
+      }
+      return null;
     };
 
     const sampleBody = () => ({
       inputs: [
         { type: "image_ref", uri: "file:///absolute/path/on/server/image.png" },
-        { type: "text", text: "Summarize what is visible in 2 concise bullet points." }
+        { type: "text", text: "Summarize what is visible in 2 concise bullet points." },
       ],
       sensitivity_label: "internal",
-      mode: "local_only"
+      mode: "local_only",
     });
+
+    const syncTemplateUI = () => {
+      const kind = $("tplKind").value;
+      const isRag = kind === "rag";
+      $("mediaFields").classList.toggle("hidden", isRag);
+      $("ragFields").classList.toggle("visible", isRag);
+      $("videoBlock").hidden = kind !== "video";
+    };
 
     const getJob = async () => {
       const id = $("jobId").value.trim();
       if (!id) {
-        show("Set job ID first.", "GET /v1/jobs/{id}");
+        show("Set Job ID first (create a job or paste an id).", "GET /v1/jobs/{id}");
+        toast("Job ID required");
         return null;
       }
-      return request(
-        "/v1/jobs/" + encodeURIComponent(id),
-        { headers: headers() },
-        "GET /v1/jobs/{id}"
-      );
+      return request("/v1/jobs/" + encodeURIComponent(id), { headers: headers() }, "GET /v1/jobs/{id}");
     };
 
     const stopPolling = () => {
@@ -464,17 +839,17 @@
       if (eventsAbort) {
         eventsAbort.abort();
         eventsAbort = null;
-        appendEvent("stream closed");
+        appendEvent("— stream closed —");
       }
     };
 
     const streamWithFetch = async (url) => {
       const resp = await fetch(url, { headers: headers(), signal: eventsAbort.signal });
       if (!resp.ok || !resp.body) {
-        appendEvent("stream open failed: HTTP " + resp.status);
+        appendEvent("Open failed: HTTP " + resp.status);
         return;
       }
-      appendEvent("stream open: " + url);
+      appendEvent("Connected");
       const reader = resp.body.getReader();
       const decoder = new TextDecoder();
       let buf = "";
@@ -502,17 +877,20 @@
       }
     };
 
-    const startEventStream = async () => {
+    const startEventStream = () => {
       stopEventStream();
       const id = $("jobId").value.trim();
       if (!id) {
-        show("Set job ID first.", "GET /v1/jobs/{id}/events");
+        show("Set Job ID before streaming events.", "GET /v1/jobs/{id}/events");
+        toast("Job ID required");
         return;
       }
       const url = base() + "/v1/jobs/" + encodeURIComponent(id) + "/events";
       eventsAbort = new AbortController();
       streamWithFetch(url).catch((e) => {
-        appendEvent("stream error: " + (e && e.message ? e.message : String(e)));
+        if (e.name !== "AbortError") {
+          appendEvent("Stream error: " + (e && e.message ? e.message : String(e)));
+        }
       });
     };
 
@@ -520,120 +898,215 @@
       stopPolling();
       const sec = Number($("pollSec").value || "0");
       if (!sec || sec < 1) {
-        show("Auto refresh is off. Pick 2s/5s/10s first.", "Auto refresh");
+        show("Choose an auto-refresh interval (not Off).", "poll");
+        toast("Turn auto-refresh on in dropdown");
         return;
       }
       pollTimer = setInterval(() => {
         getJob();
       }, sec * 1000);
-      show("Auto refresh started (" + sec + "s).", "Auto refresh");
+      show("Auto-refresh every " + sec + "s", "poll");
+      toast("Polling started");
     };
+
+    const buildPayloadFromForm = () => {
+      const sens = $("sensitivity").value;
+      const mode = $("mode").value;
+      const preset = $("outputPreset").value;
+      const schema = outputSchemaForPreset(preset);
+      const kind = $("tplKind").value;
+
+      let payload;
+
+      if (kind === "rag") {
+        const pick = $("ragCollectionPick").value.trim();
+        const custom = $("ragCollectionCustom").value.trim();
+        const coll = custom || pick;
+        const q = ($("ragQuestion").value || "").trim();
+        if (!coll) {
+          toast("Pick or type a collection");
+          show("RAG needs a collection name. Load collections or type one.", "build");
+          return;
+        }
+        if (!q) {
+          toast("Enter a RAG question");
+          return;
+        }
+        payload = {
+          inputs: [{ type: "text", text: q }],
+          rag_collection: coll,
+          sensitivity_label: sens,
+          mode,
+        };
+      } else {
+        const uri = $("tplUri").value.trim();
+        const q = ($("tplQuestion").value || "").trim() || "Summarize.";
+        if (!uri) {
+          toast("Media URI required");
+          show("Set a file:// URI the API host can read.", "build");
+          return;
+        }
+        const typed =
+          kind === "document" ? "document_ref" : kind === "video" ? "video_ref" : "image_ref";
+        payload = {
+          inputs: [
+            { type: typed, uri },
+            { type: "text", text: q },
+          ],
+          sensitivity_label: sens,
+          mode,
+        };
+        if (kind === "video") {
+          const vs = { max_frames: Number($("vidMaxFrames").value) || 8 };
+          const fpsv = $("vidFps").value;
+          if (fpsv) vs.fps = Number(fpsv);
+          if ($("vidScene").checked) {
+            vs.scene_detection = true;
+            vs.scene_threshold = Number($("vidSceneTh").value) || 0.35;
+          }
+          payload.video_sampling = vs;
+        }
+      }
+      if (schema) payload.output_schema = schema;
+      reqBodyEl().value = JSON.stringify(payload, null, 2);
+      show(payload, "Build JSON");
+      toast("JSON updated from form");
+    };
+
+    const createJobHeaders = () => {
+      const idem = $("idempotencyKey").value.trim();
+      if (idem) return headers({ "Idempotency-Key": idem });
+      return headers();
+    };
+
+    const populateCollections = (names) => {
+      const sel = $("ragCollectionPick");
+      sel.innerHTML = "";
+      const ph = document.createElement("option");
+      ph.value = "";
+      ph.textContent = names.length ? "Select a collection…" : "No collections — create one first";
+      sel.appendChild(ph);
+      names.forEach((n) => {
+        const o = document.createElement("option");
+        o.value = n;
+        o.textContent = n;
+        sel.appendChild(o);
+      });
+    };
+
+    $("tplKind").addEventListener("change", syncTemplateUI);
 
     $("btnSample").onclick = () => {
-      $("body").value = JSON.stringify(sampleBody(), null, 2);
-      show("Sample payload inserted.", "Insert sample");
+      reqBodyEl().value = JSON.stringify(sampleBody(), null, 2);
+      show(sampleBody(), "Sample JSON");
+      toast("Sample loaded");
     };
 
-    $("btnBuildPayload").onclick = () => {
-      const kind = $("tplKind").value;
-      const uri = $("tplUri").value.trim();
-      const q = $("tplQuestion").value.trim() || "Summarize.";
-      if (!uri) {
-        show("Set Input URI before building payload.", "Build from form");
-        return;
-      }
-      const typed = kind === "document" ? "document_ref" : (kind === "video" ? "video_ref" : "image_ref");
-      const payload = {
-        inputs: [{ type: typed, uri }, { type: "text", text: q }],
-        sensitivity_label: "internal",
-        mode: "local_only"
-      };
-      $("body").value = JSON.stringify(payload, null, 2);
-      show("Payload built from structured form.", "Build from form");
-    };
+    $("btnBuildPayload").onclick = () => buildPayloadFromForm();
 
     $("btnBeautify").onclick = () => {
-      const parsed = parseJsonSafe($("body").value);
+      const parsed = parseJsonSafe(reqBodyEl().value);
       if (!parsed) {
-        show("Body is not valid JSON.", "Beautify JSON");
+        show("Invalid JSON in body.", "Beautify");
+        toast("Invalid JSON");
         return;
       }
-      $("body").value = JSON.stringify(parsed, null, 2);
-      show("JSON formatted.", "Beautify JSON");
+      reqBodyEl().value = JSON.stringify(parsed, null, 2);
+      toast("Formatted");
     };
 
     $("btnCheck").onclick = async () => {
       const out = await request("/ready", { headers: headers() }, "GET /ready");
-      setConn(out && out.status === "ready" ? "Ready" : "Not ready", !!(out && out.status === "ready"));
+      const ok = out && typeof out === "object" && out.status === "ready";
+      setConn(ok ? "Backend ready" : "Backend not ready", !!ok);
+    };
+
+    $("btnHealth").onclick = async () => {
+      await request("/health", { headers: headers() }, "GET /health");
+    };
+
+    $("btnVersion").onclick = async () => {
+      await request("/version", { headers: headers() }, "GET /version");
     };
 
     $("btnPolicy").onclick = async () => {
       await request("/v1/policy", { headers: headers() }, "GET /v1/policy");
     };
 
+    $("btnMetrics").onclick = async () => {
+      await request("/v1/metrics", { headers: headers() }, "GET /v1/metrics");
+    };
+
+    $("btnLoadCollections").onclick = async () => {
+      const data = await request("/v1/collections", { headers: headers() }, "GET /v1/collections");
+      if (data && typeof data === "object" && Array.isArray(data.collections)) {
+        populateCollections(data.collections);
+        toast(data.collections.length + " collections loaded");
+      } else if (data && typeof data === "object") {
+        populateCollections([]);
+      }
+    };
+
     $("btnCreate").onclick = async () => {
-      const payload = parseJsonSafe($("body").value);
+      const payload = parseJsonSafe(reqBodyEl().value);
       if (!payload) {
-        show("Request body must be valid JSON.", "POST /v1/jobs");
+        show("Body must be valid JSON.", "POST /v1/jobs");
+        toast("Invalid JSON body");
         return;
       }
       const out = await request(
         "/v1/jobs",
-        { method: "POST", headers: headers(), body: JSON.stringify(payload) },
+        { method: "POST", headers: createJobHeaders(), body: JSON.stringify(payload) },
         "POST /v1/jobs"
       );
-      if (out && out.job_id) {
+      if (out && typeof out === "object" && out.job_id) {
         $("jobId").value = out.job_id;
+        toast("Job created");
       }
     };
 
-    $("btnGet").onclick = async () => {
-      await getJob();
-    };
+    $("btnGet").onclick = () => getJob();
 
     $("btnCancel").onclick = async () => {
       const id = $("jobId").value.trim();
       if (!id) {
-        show("Set job ID first.", "POST /v1/jobs/{id}/cancel");
+        toast("Job ID required");
         return;
       }
       await request(
         "/v1/jobs/" + encodeURIComponent(id) + "/cancel",
         { method: "POST", headers: headers() },
-        "POST /v1/jobs/{id}/cancel"
+        "POST cancel"
       );
     };
 
-    $("btnPoll").onclick = () => {
-      startPolling();
-    };
-
+    $("btnPoll").onclick = () => startPolling();
     $("btnStop").onclick = () => {
       stopPolling();
-      show("Auto refresh stopped.", "Auto refresh");
+      show("Auto-refresh stopped.", "poll");
+      toast("Polling stopped");
     };
 
-    $("btnEventsStart").onclick = () => {
-      startEventStream();
-    };
-
-    $("btnEventsStop").onclick = () => {
-      stopEventStream();
+    $("btnEventsStart").onclick = () => startEventStream();
+    $("btnEventsStop").onclick = () => stopEventStream();
+    $("btnEventsClear").onclick = () => {
+      $("events").innerHTML = "";
+      toast("Event log cleared");
     };
 
     $("btnCopy").onclick = async () => {
       try {
         await navigator.clipboard.writeText($("out").textContent);
-        show("Response copied to clipboard.", "Copy JSON");
+        toast("Copied");
       } catch {
-        show("Copy failed (browser permission denied).", "Copy JSON");
+        toast("Copy blocked — select text manually");
       }
     };
 
     $("btnClear").onclick = () => {
-      $("out").textContent = "(none)";
-      $("lastReq").textContent = "Last request: none";
-      $("lastAt").textContent = "Updated: never";
+      $("out").textContent = "(no response yet)";
+      $("lastReq").textContent = "Last request: —";
+      $("lastAt").textContent = "Updated: —";
     };
 
     window.addEventListener("beforeunload", () => {
@@ -641,9 +1114,9 @@
       stopEventStream();
     });
 
-    $("body").value = JSON.stringify(sampleBody(), null, 2);
+    reqBodyEl().value = JSON.stringify(sampleBody(), null, 2);
+    syncTemplateUI();
 
-    // Screenshot helpers: /?mode=sample or /?mode=polling
     const mode = new URLSearchParams(window.location.search).get("mode");
     if (mode === "sample") {
       $("btnSample").click();

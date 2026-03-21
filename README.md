@@ -53,7 +53,7 @@
 4. **Progress:** `GET /v1/jobs/{id}` or SSE `/v1/jobs/{id}/events` until terminal status.
 5. **Ops:** `GET /metrics` or `GET /v1/metrics?format=prometheus` for counters.
 
-Optional **browser demo:** [examples/demo-ui/](examples/demo-ui/) (Phase 11 polished UI with white background, status pills, auto-refresh, cancel action, and live SSE events panel).
+Optional **browser demo:** [examples/demo-ui/](examples/demo-ui/) — **AegisAI Lab** UI (Google Labs–style layout, desert-sand theme, pipeline designer, collections loader, SSE with auth).
 
 ---
 

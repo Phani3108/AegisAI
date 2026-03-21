@@ -133,6 +133,7 @@
 - [x] Added auth header mode selector (Bearer / X-API-Key) to demo UI
 - [x] Replaced EventSource with header-capable fetch SSE stream parser for authenticated streaming
 - [x] Added structured payload builder templates (image/document/video) to reduce JSON mistakes
+- [x] **Lab UI v2:** Google Labs–inspired layout, desert-sand theme, populated policy/mode/poll/video/RAG dropdowns, collections loader, idempotency field, health/version/metrics shortcuts ([`examples/demo-ui/index.html`](examples/demo-ui/index.html))
 
 ## Phase 18 — Scale validation + release hardening
 

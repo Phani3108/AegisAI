@@ -165,6 +165,12 @@ Append-only chronological record. Each entry: **date**, **user prompt (summary)*
 - **Actions:** Fixed FastAPI `GET /v1/metrics` with `response_model=None` (union JSON/Prometheus). In-process metrics (`jobs_completed_total`, `jobs_failed_total`, per-pipeline, rolling latency), `GET /metrics` scrape, `job_runner` recording, `tests/test_metrics_api.py` + `conftest` reset. **`.github/workflows/ci.yml`**: ruff, pytest, `scripts/ci_gate.py`, build. **`experiments/train_lora.py`**: dry-run default, `--execute` import check. **PLAYBOOK** links to experiments + CI. Ruff line-wrap in `metrics.py`. **tasks.md** Phase 1+ checkboxes updated.
 - **Files:** `src/aegisai/api/routes/v1_metrics.py`, `src/aegisai/api/routes/ops_metrics.py`, `src/aegisai/services/metrics.py`, `src/aegisai/services/job_runner.py`, `src/aegisai/main.py`, `tests/conftest.py`, `tests/test_metrics_api.py`, `.github/workflows/ci.yml`, `scripts/ci_gate.py`, `experiments/train_lora.py`, `docs/fine_tune/PLAYBOOK.md`, `tasks.md`, `LOG.md`
 
+### Entry 30 — Demo UI: Google Labs–style layout + depth
+
+- **Prompt summary:** Elevate frontend to top-tier Google Labs–like layout; desert-sand / light orange palette; functional controls; dropdowns populated with real options; more depth.
+- **Actions:** Rebuilt `examples/demo-ui/index.html` with DM Sans, sticky header + section nav, warm sand gradients and clay accent buttons, collapsible raw JSON (`reqBody` id), full **sensitivity** and **mode** enums, **output_schema** presets, **video_sampling** controls, **RAG** branch with **GET /v1/collections** loader, **Idempotency-Key**, extra probes (**/health**, **/version**, **/v1/metrics**), toast + event log clear. Updated `examples/demo-ui/README.md`. QA gate passed (54 tests).
+- **Files:** `examples/demo-ui/index.html`, `examples/demo-ui/README.md`, `LOG.md`
+
 ---
 
 *End of log (append below).*
