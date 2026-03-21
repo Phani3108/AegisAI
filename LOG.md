@@ -171,6 +171,12 @@ Append-only chronological record. Each entry: **date**, **user prompt (summary)*
 - **Actions:** Rebuilt `examples/demo-ui/index.html` with DM Sans, sticky header + section nav, warm sand gradients and clay accent buttons, collapsible raw JSON (`reqBody` id), full **sensitivity** and **mode** enums, **output_schema** presets, **video_sampling** controls, **RAG** branch with **GET /v1/collections** loader, **Idempotency-Key**, extra probes (**/health**, **/version**, **/v1/metrics**), toast + event log clear. Updated `examples/demo-ui/README.md`. QA gate passed (54 tests).
 - **Files:** `examples/demo-ui/index.html`, `examples/demo-ui/README.md`, `LOG.md`
 
+### Entry 31 — Strategy: expansion roadmap (industries, integrations, phased build)
+
+- **Prompt summary:** Plan deeper project expansion — adjacencies, industries, S/M/L use cases, personas (student to pro), wide tool/AI integrations; plan for future build.
+- **Actions:** Added [docs/strategy/expansion_roadmap.md](docs/strategy/expansion_roadmap.md) with industry/adjacency matrix, small/medium/large use-case tiers, persona table, deep integration clusters (inference, retrieval, devtools, collaboration, security, agentic), and proposed phases P19–P25; linked from `planning.md` and `README.md`.
+- **Files:** `docs/strategy/expansion_roadmap.md`, `planning.md`, `README.md`, `LOG.md`
+
 ---
 
 *End of log (append below).*

@@ -145,6 +145,7 @@
 
 ## Backlog / ideas (not committed)
 
+- [ ] **Strategy:** [docs/strategy/expansion_roadmap.md](docs/strategy/expansion_roadmap.md) — industries, S/M/L use cases, personas, integration map, phased P19+ (pick next phase to implement)
 - [x] Scene detection for smarter video keyframes (`video_sampling.scene_detection` + ffmpeg)
 - [x] DLP integration prototype for hybrid mode ([`src/aegisai/dlp/scan.py`](src/aegisai/dlp/scan.py))
 - [x] K8s Helm chart (T2) — [`deploy/helm/aegisai`](deploy/helm/aegisai)

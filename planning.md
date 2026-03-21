@@ -1,7 +1,8 @@
 # AegisAI — Local Multimodal Stack (Enterprise Privacy Engine)
 
 **Purpose:** Living strategy and architecture specification. Update when direction, constraints, or integrations change.  
-**Companion files:** `tasks.md` (checklist), `LOG.md` (prompt + completion audit trail).
+**Companion files:** `tasks.md` (checklist), `LOG.md` (prompt + completion audit trail).  
+**Expansion (industries, S/M/L use cases, personas, integration map, phased build):** [docs/strategy/expansion_roadmap.md](docs/strategy/expansion_roadmap.md).
 
 **Phase 0 implementation stack (accepted):** Python **3.11+**, **FastAPI**, **Uvicorn**, **Pydantic v2**; package layout `src/aegisai/`. Rationale: [`docs/adr/0001-python-fastapi-control-plane.md`](docs/adr/0001-python-fastapi-control-plane.md).
 
